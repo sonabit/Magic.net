@@ -4,7 +4,7 @@ using System.Text;
 
 namespace System
 {
-    public static class MagSystemExtention
+    public static class MagSystemExtension
     {
         /// <summary>
         /// Returns the ticks from 1-1-1970
