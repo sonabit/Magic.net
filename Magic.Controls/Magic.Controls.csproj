@@ -55,7 +55,9 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ObjectNotify.cs" />
     <Compile Include="MagCheckBox.cs" />
+    <Compile Include="Properties\Annotations.cs" />
     <Compile Include="System\IO\MagIOExtension.cs" />
     <Compile Include="System\MagLinqExtension.cs" />
     <Compile Include="System\MagSystemExtension.cs" />
