@@ -57,7 +57,8 @@
   <ItemGroup>
     <Compile Include="MagCheckBox.cs" />
     <Compile Include="System\IO\MagIOExtension.cs" />
-    <Compile Include="System\MagSystemExtention.cs" />
+    <Compile Include="System\MagLinqExtension.cs" />
+    <Compile Include="System\MagSystemExtension.cs" />
     <Compile Include="System\Security\MagCryptographyExtension.cs" />
     <Compile Include="System\Threading\Tasks\TaskHelper.cs" />
     <Page Include="Themes\Generic.xaml">
