@@ -58,12 +58,6 @@
     <Compile Include="ObjectNotify.cs" />
     <Compile Include="MagCheckBox.cs" />
     <Compile Include="Properties\Annotations.cs" />
-    <Compile Include="System\IO\MagIOExtension.cs" />
-    <Compile Include="System\MagLinqExtension.cs" />
-    <Compile Include="System\MagSystemExtension.cs" />
-    <Compile Include="System\Security\MagCryptographyExtension.cs" />
-    <Compile Include="System\Threading\Tasks\TaskHelper.cs" />
-    <Compile Include="System\Threading\Tasks\UiTask.cs" />
     <Page Include="Themes\Generic.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -97,6 +91,12 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <AppDesigner Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Magic\Magic.csproj">
+      <Project>{d835b407-6ed1-402d-b34d-8f46a81a5ddd}</Project>
+      <Name>Magic</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
