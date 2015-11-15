@@ -31,6 +31,9 @@ namespace Magic
             }
         }
 
+        /// <summary>
+        /// Gibt die Gesamtanzahl der Element im Set an
+        /// </summary>
         public int Lenght
         {
             get { return _set.Count; }
@@ -43,9 +46,13 @@ namespace Magic
 
         #region Implementation of IEnumerable
 
+        /// <summary>
+        /// Liefert ein Enumerator über die gesamten Elemente im Set
+        /// </summary>
+        /// <returns></returns>
         public IEnumerator<T> GetEnumerator()
         {
-            return new NestedSetEnumerator(_set);
+            return _set.Select(i => i.Value).AsEnumerable().GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -55,15 +62,124 @@ namespace Magic
 
         #endregion
 
-        #region NestedSetEnumerator
+       }
 
-        internal class NestedSetEnumerator : IEnumerator<T>
+    public class NestedSetItem<T> : ICollection<NestedSetItem<T>> where T : class
+    {
+        private readonly SortedSet<NestedSetItem<T>> _set;
+        internal static IComparer<NestedSetItem<T>> Comparer = new Comparer<NestedSetItem<T>, long>(item => item.Left);
+
+
+        internal NestedSetItem(long left, long right, T value, SortedSet<NestedSetItem<T>> set)
         {
+            _set = set;
+            Left = left;
+            Right = right;
+            Value = value;
+        }
+
+        internal long Left { get; private set; }
+
+        internal long Right { get; private set; }
+
+        public T Value { get; set; }
+
+        #region Implementation of IEnumerable
+
+        public IEnumerator<NestedSetItem<T>> GetEnumerator()
+        {
+            var n = new NextLevelEnumerator(this);
+            var left = Left;
+            var right = Right;
+            var t = _set.Where(i => i.Left > left && i.Right < right).AsEnumerable().GetEnumerator();
+            return n;
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        #endregion
+
+        public IEnumerable<NestedSetItem<T>> AsAllChildren()
+        {
+            var left = Left;
+            var right = Right;
+            var t = _set.Where(i => i.Left > left && i.Right < right).AsEnumerable();
+            return t;
+        }
+
+        internal class NextLevelEnumerable : IEnumerable<NestedSetItem<T>>
+        {
+            private readonly NestedSetItem<T> _rootItem;
+
+            public NextLevelEnumerable(NestedSetItem<T> rootItem)
+            {
+                _rootItem = rootItem;
+            }
+
+            public IEnumerator<NestedSetItem<T>> GetEnumerator()
+            {
+                //var left = _rootItem.Left;
+                //var right = _rootItem.Right;
+                var t = _rootItem._set.Where(i => i.Left > _rootItem.Left && i.Right < _rootItem.Right).AsEnumerable().GetEnumerator();
+                return t;
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+        }
+
+        class NextLevelEnumerator : IEnumerator<NestedSetItem<T>>
+        {
+            private readonly NestedSetItem<T> _rootItem;
+            private NestedSetItem<T> _item;
+
+
+            public NextLevelEnumerator(NestedSetItem<T> rootItem)
+            {
+                _rootItem = rootItem;
+            }
+
+            public void Dispose()
+            {
+                
+            }
+
+            public bool MoveNext()
+            {
+                var left = _item != null ? _item.Right + 1 : _rootItem.Left + 1;
+                _item = _rootItem._set.FirstOrDefault(i => i.Left == left);
+                return _item != null;
+            }
+
+            public void Reset()
+            {
+                _item = null;
+            }
+
+            public NestedSetItem<T> Current { get { return _item; } }
+
+            object IEnumerator.Current
+            {
+                get { return Current; }
+            }
+        }
+        #region NestedSetItemEnumerator
+
+        internal class NestedSetItemEnumerator : IEnumerator<T>
+        {
+            private readonly NestedSetItem<T> _rootItem;
             private IEnumerator<NestedSetItem<T>> _enumerator;
 
-            internal NestedSetEnumerator(SortedSet<NestedSetItem<T>> set)
+            internal NestedSetItemEnumerator(NestedSetItem<T> rootItem)
             {
-                _enumerator = set.GetEnumerator();
+                _rootItem = rootItem;
+                _enumerator = new NextLevelEnumerator(rootItem);
+                // bedingung erstellen nur elemente des nächsten levels
             }
 
             #region Implementation of IDisposable
@@ -73,7 +189,8 @@ namespace Magic
                 try
                 {
                     _enumerator.Dispose();
-                }catch{}
+                }
+                catch { }
                 _enumerator = null;
             }
 
@@ -111,44 +228,7 @@ namespace Magic
         }
 
         #endregion
-    }
 
-    public class NestedSetItem<T> : ICollection<NestedSetItem<T>> where T : class
-    {
-        private readonly SortedSet<NestedSetItem<T>> _set;
-        internal static IComparer<NestedSetItem<T>> Comparer = new Comparer<NestedSetItem<T>, long>(item => item.Left);
-
-
-        internal NestedSetItem(long left, long right, T value, SortedSet<NestedSetItem<T>> set)
-        {
-            _set = set;
-            Left = left;
-            Right = right;
-            Value = value;
-        }
-
-        internal long Left { get; private set; }
-
-        internal long Right { get; private set; }
-
-        public T Value { get; set; }
-
-        #region Implementation of IEnumerable
-
-        public IEnumerator<NestedSetItem<T>> GetEnumerator()
-        {
-            var left = Left;
-            var right = Right;
-            var t = _set.Where(i => i.Left > left && i.Right < right).AsEnumerable().GetEnumerator();
-            return t;
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        #endregion
 
         #region Implementation of ICollection<NestedSetItem<T>>
 
@@ -204,6 +284,14 @@ namespace Magic
             get
             {
                 return (int) ((Right - Left - 1)/2);
+            }
+        }
+
+        public int TotalCount
+        {
+            get
+            {
+                return (int)((Right - Left - 1) / 2);
             }
         }
 
