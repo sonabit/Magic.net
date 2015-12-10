@@ -55,6 +55,7 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Converter\ReadableFilesizeConverter.cs" />
     <Compile Include="ObjectNotify.cs" />
     <Compile Include="MagCheckBox.cs" />
     <Compile Include="Properties\Annotations.cs" />
