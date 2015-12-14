@@ -41,6 +41,7 @@
   <ItemGroup>
     <Compile Include="Comparer.cs" />
     <Compile Include="NestedSet\NestedSet.cs" />
+    <Compile Include="NestedSet\NestedSetItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="System\IO\MagIOExtension.cs" />
     <Compile Include="System\MagLinqExtension.cs" />

@@ -3,10 +3,61 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:FolderSize"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+        xmlns:viewModels="clr-namespace:FolderSize.ViewModels"
+        xmlns:converter="clr-namespace:Magic.Controls.Converter;assembly=Magic.Controls"
+        xmlns:system="clr-namespace:System;assembly=mscorlib"
+        xmlns:componentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+        mc:Ignorable="d" d:DataContext="{d:DesignInstance Type=viewModels:MainViewModel}"
+        Title="Sample Folder HeadMap" Height="350" Width="525"
+        >
+    <FrameworkElement.Resources>
+
+        <CollectionViewSource x:Key="cvs" 
+                              Source="{Binding Path=DirTree.RootItem}"
+                              IsLiveSortingRequested="True">
+            <CollectionViewSource.LiveSortingProperties>
+                <system:String>TotalCount</system:String>
+            </CollectionViewSource.LiveSortingProperties>
+            <CollectionViewSource.SortDescriptions>
+                <componentModel:SortDescription PropertyName="TotalCount" Direction="Descending"/>
+            </CollectionViewSource.SortDescriptions>
+            
+        </CollectionViewSource>
+
+        <converter:ReadableFilesizeConverter x:Key="ReadableFilesizeConverter"/>
+
+        <HierarchicalDataTemplate x:Key="FileEntryItemDataTemplate" ItemsSource="{Binding Path=.}">
+            <TextBlock >
+                <Run Text="{Binding Path=Value.DisplayText, Mode=OneWay}"/>
+                <Run Text="{Binding Path=TotalCount, Mode=OneWay}"/>
+            </TextBlock>
+        </HierarchicalDataTemplate>
+        <!-- , Converter={StaticResource ReadableFilesizeConverter} -->
+
+    </FrameworkElement.Resources>
     <Grid>
-        
+        <Grid.RowDefinitions>
+            <RowDefinition Height="46"/>
+            <RowDefinition Height="1*"/>
+        </Grid.RowDefinitions>
+
+        <Button Command="{Binding RefreshCommand}" Width="93" Content="Refresh" Margin="5,5,0,0" HorizontalAlignment="Left" Height="36" VerticalAlignment="Top"/>
+
+        <TextBlock Grid.Row="0" Margin="124,5,05,05" HorizontalAlignment="Left" Width="197">
+            <Run Text="{Binding Path=Dirs.Count, Mode=OneWay}"/> <Run >Verzeichnisse gescannt</Run>
+            <LineBreak/>
+            <Run Text="{Binding Path=TotalLength, Converter={StaticResource ReadableFilesizeConverter}, Mode=OneWay}"/> <Run >Größe</Run>
+        </TextBlock>
+
+        <CheckBox Grid.Row="0" IsChecked="{Binding Path=IsLiveSorting}" IsThreeState="True" Margin="285,19,72,10" Content="Livesorting" />
+        <Button Margin="0,10,10,0" HorizontalAlignment="Right" Width="98" Height="25" VerticalAlignment="Top"
+                Click="ButtonBase_OnClick">test</Button>
+        <TreeView x:Name="TreeView" Grid.Row="1" ItemsSource="{Binding Source={StaticResource cvs}}"
+                  
+                  ItemTemplate="{StaticResource FileEntryItemDataTemplate}"
+                  VirtualizingStackPanel.IsVirtualizing="True"
+                  VirtualizingStackPanel.VirtualizationMode="Recycling">
+
+        </TreeView>
     </Grid>
 </Window>

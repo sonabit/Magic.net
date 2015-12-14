@@ -13,6 +13,9 @@ namespace MagicTest
         private NestedSetItem<TestClass> _item1;
         private NestedSetItem<TestClass> _item2;
         private NestedSetItem<TestClass> _item8;
+        private NestedSetItem<TestClass> _item12;
+        private NestedSetItem<TestClass> _item13;
+        private NestedSetItem<TestClass> _item19;
 
 
         /*
@@ -41,11 +44,11 @@ namespace MagicTest
             _item8 = _item1.Add(new TestClass());
             var item9 = _item8.Add(new TestClass());
 
-            var item12 = _item1.Add(new TestClass());
-            var item13 = item12.Add(new TestClass());
-            var item14 = item13.Add(new TestClass());
-            var item16 = item13.Add(new TestClass());
-            var item19 = item12.Add(new TestClass());
+            _item12 = _item1.Add(new TestClass());
+            _item13 = _item12.Add(new TestClass());
+            var item14 = _item13.Add(new TestClass());
+            var item16 = _item13.Add(new TestClass());
+            _item19 = _item12.Add(new TestClass());
         }
 
 
@@ -142,6 +145,27 @@ namespace MagicTest
 
             Assert.AreEqual(1, setItem.Count);
             Assert.AreEqual(3, set.RootItem.Count);
+        }
+
+        [TestMethod]
+        public void TestLevelCountTrue()
+        {
+            Assert.AreEqual(_item12.Count, 2);
+        }
+
+        [TestMethod]
+        public void TestEnumerable()
+        {
+            var expectItems = new [] { _item13, _item19 };
+            var idx = 0;
+
+            foreach (var item in _item12)
+            {
+                Assert.AreNotEqual(2, idx);
+                Assert.AreEqual(expectItems[idx], item);
+                idx++;
+            }
+            Assert.AreEqual(1, idx-1);
         }
     }
 }
