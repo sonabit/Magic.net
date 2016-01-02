@@ -11,15 +11,18 @@ namespace FolderSize.Models
         private readonly Action<long> _call;
         private long _totalLength;
 
-        public FileEntryItem(string path, Action<long> call)
+        public FileEntryItem(string path, Action<long> call, int level)
         {
             _path = path;
             _call = call;
+            Level = level;
         }
 
         public string DisplayText { get { return _path; } }
 
         public string Path { get { return _path; } }
+
+        public int Level { get; }
 
         public long TotalLength
         {

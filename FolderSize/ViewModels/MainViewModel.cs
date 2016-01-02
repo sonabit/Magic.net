@@ -53,6 +53,7 @@ namespace FolderSize.ViewModels
         {
             var drives = Directory.GetLogicalDrives();
             ScanEntry(drives[0]);
+            //ScanEntry("C:\\Users\\Fake\\ownCloud");
         }
 
         private async Task RefreshAsync()
@@ -64,7 +65,8 @@ namespace FolderSize.ViewModels
 
         private void ScanEntry(string path)
         {
-            var item = new FileEntryItem(path, AddLength);
+            UiTask.Run(Dirs.Clear).Wait();
+            var item = new FileEntryItem(path, AddLength, 0);
             UiTask.Run(Dirs.Add, item).Wait();
             UiTask.Run(() => DirTree.Root = item).Wait();
             ScanEntry(DirTree.RootItem, item, CancellationToken.None);
@@ -82,13 +84,14 @@ namespace FolderSize.ViewModels
                     
                     if ((fileSystemInfo.Attributes & FileAttributes.Directory) == FileAttributes.Directory)
                     {
-                        var dirEntry = new FileEntryItem(fileSystemInfo.FullName, item.AddLength);
+                        var dirEntry = new FileEntryItem(fileSystemInfo.FullName, item.AddLength, item.Level + 1);
                         var t = UiTask.Run(root.Add, dirEntry);
-                        t.Wait(cancellationToken);
+                        //t.Wait(cancellationToken);
                         if (cancellationToken.CanBeCanceled && cancellationToken.IsCancellationRequested)
                             break;
                         NestedSetItem<FileEntryItem> nestedSetItem = t.Result;
-                        UiTask.Run(Dirs.Add, dirEntry).Wait(cancellationToken);
+                        if (dirEntry.Level < 2)
+                            UiTask.Run(Dirs.Add, dirEntry).Wait(cancellationToken);
                         item.AddLength(dirEntry.TotalLength);
                         ScanEntry(nestedSetItem, dirEntry, cancellationToken);
                         //item.TotalLength += dirEntry.TotalLength;

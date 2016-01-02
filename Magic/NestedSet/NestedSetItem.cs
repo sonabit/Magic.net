@@ -10,17 +10,16 @@ using System.Runtime.CompilerServices;
 namespace Magic
 {
     /// <summary>
-    /// A Entry of a nested set
+    ///     A Entry of a nested set
     /// </summary>
     /// <typeparam name="T"></typeparam>
     [DebuggerDisplay("{Value}")]
-    public sealed class NestedSetItem<T> : ICollection<NestedSetItem<T>>, INotifyPropertyChanged, INotifyCollectionChanged
+    public sealed class NestedSetItem<T> : ICollection<NestedSetItem<T>>, IList, ICollection, INotifyCollectionChanged,
+        INotifyPropertyChanged
         where T : class
     {
-        private readonly SortedSet<NestedSetItem<T>> _set;
         internal static IComparer<NestedSetItem<T>> Comparer = new Comparer<NestedSetItem<T>, long>(item => item.Left);
-
-        public event NotifyCollectionChangedEventHandler CollectionChanged;
+        private readonly SortedSet<NestedSetItem<T>> _set;
 
         internal NestedSetItem(long left, long right, T value, SortedSet<NestedSetItem<T>> set)
         {
@@ -36,23 +35,9 @@ namespace Magic
 
         public T Value { get; set; }
 
-        #region Implementation of IEnumerable
+        public event NotifyCollectionChangedEventHandler CollectionChanged;
 
-        public IEnumerator<NestedSetItem<T>> GetEnumerator()
-        {
-            var n = new NextLevelEnumerator(this);
-            var left = Left;
-            var right = Right;
-            var t = _set.Where(i => i.Left > left && i.Right < right).AsEnumerable().GetEnumerator();
-            return n;
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        #endregion
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public IEnumerable<NestedSetItem<T>> AsAllChildren()
         {
@@ -60,6 +45,18 @@ namespace Magic
             var right = Right;
             var t = _set.Where(i => i.Left > left && i.Right < right).AsEnumerable();
             return t;
+        }
+
+        private void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
+        {
+            var handler = CollectionChanged;
+            if (handler != null) handler(this, e);
+        }
+
+        private void RaisePropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            var handler = PropertyChanged;
+            if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
         }
 
         internal class NextLevelEnumerable : IEnumerable<NestedSetItem<T>>
@@ -75,7 +72,10 @@ namespace Magic
             {
                 //var left = _rootItem.Left;
                 //var right = _rootItem.Right;
-                var t = _rootItem._set.Where(i => i.Left > _rootItem.Left && i.Right < _rootItem.Right).AsEnumerable().GetEnumerator();
+                var t =
+                    _rootItem._set.Where(i => i.Left > _rootItem.Left && i.Right < _rootItem.Right)
+                        .AsEnumerable()
+                        .GetEnumerator();
                 return t;
             }
 
@@ -85,10 +85,9 @@ namespace Magic
             }
         }
 
-        class NextLevelEnumerator : IEnumerator<NestedSetItem<T>>
+        private class NextLevelEnumerator : IEnumerator<NestedSetItem<T>>
         {
             private readonly NestedSetItem<T> _rootItem;
-            private NestedSetItem<T> _item;
 
 
             public NextLevelEnumerator(NestedSetItem<T> rootItem)
@@ -98,29 +97,28 @@ namespace Magic
 
             public void Dispose()
             {
-                
             }
 
             public bool MoveNext()
             {
-                var left = _item != null ? _item.Right + 1 : _rootItem.Left + 1;
-                _item = _rootItem._set.FirstOrDefault(i => i.Left == left);
-                return _item != null;
+                var left = Current != null ? Current.Right + 1 : _rootItem.Left + 1;
+                Current = _rootItem._set.FirstOrDefault(i => i.Left == left);
+                return Current != null;
             }
 
             public void Reset()
             {
-                _item = null;
+                Current = null;
             }
 
-            public NestedSetItem<T> Current { get { return _item; } }
+            public NestedSetItem<T> Current { get; private set; }
 
             object IEnumerator.Current
             {
                 get { return Current; }
             }
         }
-        
+
         #region NestedSetItemEnumerator
 
         internal class NestedSetItemEnumerator : IEnumerator<T>
@@ -143,7 +141,9 @@ namespace Magic
                 {
                     _enumerator.Dispose();
                 }
-                catch { }
+                catch
+                {
+                }
                 _enumerator = null;
             }
 
@@ -162,10 +162,10 @@ namespace Magic
             }
 
             /// <summary>
-            /// Ruft das Element in der Auflistung an der aktuellen Position des Enumerators ab.
+            ///     Ruft das Element in der Auflistung an der aktuellen Position des Enumerators ab.
             /// </summary>
             /// <returns>
-            /// Das Element in der Auflistung an der aktuellen Position des Enumerators.
+            ///     Das Element in der Auflistung an der aktuellen Position des Enumerators.
             /// </returns>
             public T Current
             {
@@ -182,42 +182,118 @@ namespace Magic
 
         #endregion
 
+        #region Implementation of IEnumerable
+
+        public IEnumerator<NestedSetItem<T>> GetEnumerator()
+        {
+            var n = new NextLevelEnumerator(this);
+            var left = Left;
+            var right = Right;
+            var t = _set.Where(i => i.Left > left && i.Right < right).AsEnumerable().GetEnumerator();
+            return n;
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        #endregion
 
         #region Implementation of ICollection<NestedSetItem<T>>
 
         public NestedSetItem<T> Add(T item)
         {
-            var right = Right;
-            _set.Each(i => 
-            {
-                if (i.Left > right)
-                {
-                    i.Left += 2;
-                    i.Right += 2;
-                    return;
-                }
-                if (i.Right > right)
-                {
-                    i.Right += 2;
-                }
-            });
-            Right += 2;
-            var result = new NestedSetItem<T>(right, right + 1, item, _set);
-            _set.Add(result);
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new ArrayList {result}));
-            RaisePropertyChanged("Count");
-            RaisePropertyChanged("TotalCount");
-            return result; 
+            var result = new NestedSetItem<T>(0, 0 + 1, item, _set);
+            ((ICollection<NestedSetItem<T>>) this).Add(result);
+
+            return result;
         }
 
         void ICollection<NestedSetItem<T>>.Add(NestedSetItem<T> item)
         {
-            Add(item.Value);
+
+            lock (SyncRoot)
+            {
+
+                var right = Right;
+                _set.Each(i =>
+                {
+                    if (i.Left > right)
+                    {
+                        i.Left += 2;
+                        i.Right += 2;
+                        return;
+                    }
+                    if (i.Right > right)
+                    {
+                        i.Right += 2;
+                    }
+                });
+                Right += 2;
+                item.Left = right;
+                item.Right = right + 1;
+
+                _set.Add(item);
+
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add,
+                    new ArrayList {item}));
+                RaisePropertyChanged("Count");
+                RaisePropertyChanged("TotalCount");
+            }
+        }
+
+        int IList.Add(object item)
+        {
+            if (!(item is NestedSetItem<T>)) throw new InvalidCastException("item");
+            var idx = Count;
+            ((ICollection<NestedSetItem<T>>) this).Add((NestedSetItem<T>) item);
+            return idx;
+        }
+
+        public bool Contains(object value)
+        {
+            throw new NotImplementedException();
         }
 
         public void Clear()
         {
             throw new NotImplementedException();
+        }
+
+        public int IndexOf(object value)
+        {
+            var idx = 0;
+            foreach (var item in this)
+            {
+                if (value == item)
+                {
+                    return idx;
+                }
+                idx++;
+            }
+            return -1;
+        }
+
+        public void Insert(int index, object value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Remove(object value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RemoveAt(int index)
+        {
+            throw new NotImplementedException();
+        }
+
+        public object this[int index]
+        {
+            get { return this.ElementAt(index); }
+            set { throw new NotImplementedException(); }
         }
 
         public bool Contains(NestedSetItem<T> item)
@@ -241,12 +317,23 @@ namespace Magic
             throw new NotImplementedException();
         }
 
+        public void CopyTo(Array array, int index)
+        {
+            var idx = index;
+            foreach (var item in this)
+            {
+                if (idx >= array.Length) throw new IndexOutOfRangeException();
+                array.SetValue(item, idx);
+                idx++;
+            }
+        }
+
         public int Count
         {
             get
             {
                 var result = 0;
-                var  e = new NextLevelEnumerator(this);
+                var e = new NextLevelEnumerator(this);
                 while (e.MoveNext())
                 {
                     result++;
@@ -255,35 +342,33 @@ namespace Magic
             }
         }
 
+        public object SyncRoot
+        {
+            get { return _set; }
+        }
+
+        public bool IsSynchronized
+        {
+            get { return false; }
+        }
+
         public int TotalCount
         {
-            get
-            {
-                return (int)((Right - Left - 1) / 2);
-            }
+            get { return (int) ((Right - Left - 1)/2); }
         }
 
-        public bool IsReadOnly { get { return false; } }
+        public bool IsReadOnly
+        {
+            get { return false; }
+        }
+
+        public bool IsFixedSize { get; private set; }
 
         #endregion
-
-        private void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
-        {
-            var handler = CollectionChanged;
-            if (handler != null) handler(this, e);
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private void RaisePropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            var handler = PropertyChanged;
-            if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
-        }
     }
 
-    public   abstract class NestedSetItem
-{
-    public abstract  object Value { get; protected set; }
-}
+    public abstract class NestedSetItem
+    {
+        public abstract object Value { get; protected set; }
+    }
 }

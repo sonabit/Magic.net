@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using FolderSize.Models;
 using FolderSize.ViewModels;
 
 namespace FolderSize
@@ -27,11 +28,26 @@ namespace FolderSize
         public MainWindow()
         {
             UiTask.Initialize();
-
-            _viewModel = new MainViewModel();
-            DataContext = _viewModel;
             
+            _viewModel = new MainViewModel();
+            _viewModel.DirTree.Root = new FileEntryItem("", null, 0);
+            DataContext = _viewModel;
+            _viewModel.PropertyChanged += OnPropertyChanged;
+
+            var b = _viewModel.Dirs is ICollectionViewLiveShaping;
+
             InitializeComponent();
+
+            TreeView.Items.LiveSortingProperties.Add("Totalcount");
+            TreeView.Items.SortDescriptions.Add(new SortDescription("Value.TotalLength", ListSortDirection.Descending));
+            TreeView.Items.IsLiveSorting = _viewModel.IsLiveSorting;
+
+            ItemsControl.Items.LiveSortingProperties.Add("TotalLength");
+            ItemsControl.Items.SortDescriptions.Add(new SortDescription("TotalLength", ListSortDirection.Descending));
+            ItemsControl.Items.IsLiveSorting = _viewModel.IsLiveSorting;
+
+
+            //ItemCollection
 
             //var cvs = FindResource("cvs") as CollectionViewSource;
             //if (cvs != null)
@@ -41,7 +57,10 @@ namespace FolderSize
         private void OnPropertyChanged(object sender, PropertyChangedEventArgs propertyChangedEventArgs)
         {
             if (propertyChangedEventArgs.PropertyName == "IsLiveSorting")
+            {
                 TreeView.Items.IsLiveSorting = _viewModel.IsLiveSorting;
+                ItemsControl.Items.IsLiveSorting = _viewModel.IsLiveSorting;
+            }
         }
 
         private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
