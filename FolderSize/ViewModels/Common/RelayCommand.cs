@@ -42,7 +42,8 @@ namespace FolderSize.ViewModels
         [DebuggerStepThrough]
         public void Execute(object parameter)
         {
-            _onExecute?.Invoke(parameter);
+            if (_onExecute != null) 
+                _onExecute.Invoke(parameter);
         }
 
         /// <summary>

@@ -64,7 +64,9 @@ namespace MagicTest
             Assert.AreEqual(1, _set.RootItem.Left);
             Assert.AreEqual(22, _set.RootItem.Right);
 
-            Assert.AreEqual(10, _set.RootItem.Count());
+            Assert.AreEqual(10, _set.RootItem.TotalCount);
+            Assert.AreEqual(3, _set.RootItem.Count());
+            Assert.AreEqual(3, _set.RootItem.Count);
         }
 
 
@@ -74,7 +76,7 @@ namespace MagicTest
             Assert.AreEqual(2, _item2.Left);
             Assert.AreEqual(7, _item2.Right);
 
-            Assert.AreEqual(2, _item2.Count);
+            Assert.AreEqual(2, _item2.TotalCount);
         }
 
         [TestMethod]
@@ -88,7 +90,8 @@ namespace MagicTest
             Assert.AreEqual(1, _item1.Left);
 
             Assert.AreEqual(12, _set.Count());
-            Assert.AreEqual(11, _item1.Count());
+            Assert.AreEqual(11, _item1.TotalCount);
+            Assert.AreEqual(4, _item1.Count);
         }
 
 
@@ -103,11 +106,15 @@ namespace MagicTest
 
             Assert.AreEqual(1, _item1.Left);
             Assert.AreEqual(expectRight1, _item1.Right);
-            Assert.AreEqual(11, _item1.Count());
+            Assert.AreEqual(11, _item1.TotalCount);
+            Assert.AreEqual(3, _item1.Count());
+            Assert.AreEqual(3, _item1.Count);
 
             Assert.AreEqual(8, _item8.Left);
             Assert.AreEqual(expectRight8, _item8.Right);
+            Assert.AreEqual(2, _item8.TotalCount);
             Assert.AreEqual(2, _item8.Count());
+            Assert.AreEqual(2, _item8.Count);
 
         }
 
@@ -144,7 +151,8 @@ namespace MagicTest
             Assert.AreEqual(3, set.RootItem.TotalCount);
 
             Assert.AreEqual(1, setItem.Count);
-            Assert.AreEqual(3, set.RootItem.Count);
+            Assert.AreEqual(3, set.RootItem.TotalCount);
+            Assert.AreEqual(2, set.RootItem.Count);
         }
 
         [TestMethod]

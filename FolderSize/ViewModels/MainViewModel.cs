@@ -12,15 +12,25 @@ namespace FolderSize.ViewModels
     internal class MainViewModel : BaseViewModel
     {
         private RelayCommand _refreshCommand;
+        
+        private readonly ObservableCollection<FileEntryItem>  _dirs = new ObservableCollection<FileEntryItem>();
+        private readonly NestedSet<FileEntryItem>  _dirTree = new NestedSet<FileEntryItem>();
         private long _totalLength;
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
         private bool _isLiveSorting;
 
 
-        public ICommand RefreshCommand => _refreshCommand ?? (_refreshCommand = new RelayCommand(RefreshAsync));
+        public ICommand RefreshCommand
+        {
+            get { return _refreshCommand ?? (_refreshCommand = new RelayCommand( (Func<Task>) RefreshAsync)); }
+        }
 
-        public Collection<FileEntryItem> Dirs { get; } = new ObservableCollection<FileEntryItem>();
-        public NestedSet<FileEntryItem> DirTree { get; } = new NestedSet<FileEntryItem>();
+        public Collection<FileEntryItem> Dirs { get { return _dirs; } }
+
+        public NestedSet<FileEntryItem> DirTree
+        {
+            get { return _dirTree; }
+        }
 
         public long TotalLength
         {
@@ -85,7 +95,7 @@ namespace FolderSize.ViewModels
                     if ((fileSystemInfo.Attributes & FileAttributes.Directory) == FileAttributes.Directory)
                     {
                         var dirEntry = new FileEntryItem(fileSystemInfo.FullName, item.AddLength, item.Level + 1);
-                        var t = UiTask.Run(root.Add, dirEntry);
+                        var t = UiTask.Run((Func<FileEntryItem, NestedSetItem<FileEntryItem>>)root.Add, dirEntry);
                         //t.Wait(cancellationToken);
                         if (cancellationToken.CanBeCanceled && cancellationToken.IsCancellationRequested)
                             break;
