@@ -28,6 +28,13 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\Magic.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\magic.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -49,6 +56,11 @@
     <Compile Include="System\Security\MagCryptographyExtension.cs" />
     <Compile Include="System\Threading\Tasks\TaskHelper.cs" />
     <Compile Include="System\Threading\Tasks\UiTask.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\magic.snk">
+      <Link>magic.snk</Link>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
