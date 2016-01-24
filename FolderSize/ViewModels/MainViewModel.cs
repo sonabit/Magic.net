@@ -1,9 +1,10 @@
 ﻿using System;
-using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using FolderSize.Annotations;
 using FolderSize.Models;
 using Magic;
 
@@ -13,20 +14,18 @@ namespace FolderSize.ViewModels
     {
         private RelayCommand _refreshCommand;
         
-        private readonly ObservableCollection<FileEntryItem>  _dirs = new ObservableCollection<FileEntryItem>();
         private readonly NestedSet<FileEntryItem>  _dirTree = new NestedSet<FileEntryItem>();
         private long _totalLength;
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
-        private bool _isLiveSorting;
+        
+        private bool _isLiveSorting = true;
 
 
         public ICommand RefreshCommand
         {
-            get { return _refreshCommand ?? (_refreshCommand = new RelayCommand( (Func<Task>) RefreshAsync)); }
+            get { return _refreshCommand ?? (_refreshCommand = new RelayCommand( RefreshAsync)); }
         }
-
-        public Collection<FileEntryItem> Dirs { get { return _dirs; } }
-
+        
         public NestedSet<FileEntryItem> DirTree
         {
             get { return _dirTree; }
@@ -59,13 +58,6 @@ namespace FolderSize.ViewModels
             TotalLength = _totalLength + length;
         }
 
-        private void Refresh()
-        {
-            var drives = Directory.GetLogicalDrives();
-            ScanEntry(drives[0]);
-            //ScanEntry("C:\\Users\\Fake\\ownCloud");
-        }
-
         private async Task RefreshAsync()
         {
             _cancellationTokenSource.Cancel();
@@ -73,49 +65,19 @@ namespace FolderSize.ViewModels
             await Task.Run((Action)Refresh, _cancellationTokenSource.Token);
         }
 
-        private void ScanEntry(string path)
+        private void Refresh()
         {
-            UiTask.Run(Dirs.Clear).Wait();
-            var item = new FileEntryItem(path, AddLength, 0);
-            UiTask.Run(Dirs.Add, item).Wait();
-            UiTask.Run(() => DirTree.Root = item).Wait();
-            ScanEntry(DirTree.RootItem, item, CancellationToken.None);
+            var drives = Directory.GetLogicalDrives();
+            ScanEntry(drives[0]);
+            //ScanEntry("C:\\Users\\Fake\\ownCloud");
         }
 
-        private void ScanEntry(NestedSetItem<FileEntryItem> root, FileEntryItem item, CancellationToken cancellationToken)
+        private void ScanEntry(string path)
         {
-            DirectoryInfo dir = new DirectoryInfo(item.Path);
-            try
-            {
-                foreach (var fileSystemInfo in dir.EnumerateFileSystemInfos())
-                {
-                    //if ((enumerateFileSystemInfo.Attributes & FileAttributes.System) == FileAttributes.System)
-                    //    continue;
-                    
-                    if ((fileSystemInfo.Attributes & FileAttributes.Directory) == FileAttributes.Directory)
-                    {
-                        var dirEntry = new FileEntryItem(fileSystemInfo.FullName, item.AddLength, item.Level + 1);
-                        var t = UiTask.Run((Func<FileEntryItem, NestedSetItem<FileEntryItem>>)root.Add, dirEntry);
-                        //t.Wait(cancellationToken);
-                        if (cancellationToken.CanBeCanceled && cancellationToken.IsCancellationRequested)
-                            break;
-                        NestedSetItem<FileEntryItem> nestedSetItem = t.Result;
-                        if (dirEntry.Level < 2)
-                            UiTask.Run(Dirs.Add, dirEntry).Wait(cancellationToken);
-                        item.AddLength(dirEntry.TotalLength);
-                        ScanEntry(nestedSetItem, dirEntry, cancellationToken);
-                        //item.TotalLength += dirEntry.TotalLength;
-                        if (cancellationToken.CanBeCanceled && cancellationToken.IsCancellationRequested)
-                            break;
-                        continue;
-                    }
-                    item.AddLength(((FileInfo)fileSystemInfo).Length);
-                }
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
+            var item = new FileEntryItem(path, AddLength, 0);
+            UiTask.Run(() => DirTree.Root = item).Wait();
+            var fsw = new FilesystemWalker();
+            fsw.Run(4, DirTree.RootItem, item, _cancellationTokenSource.Token);
         }
     }
 }

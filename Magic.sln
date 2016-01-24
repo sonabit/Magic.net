@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Magic.Controls", "Magic.Controls\Magic.Controls.csproj", "{BA84B818-EAAA-45F5-BD1F-EB13D5B7A29C}"
 EndProject
@@ -21,28 +21,39 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+		RemoteDebug|Any CPU = RemoteDebug|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{BA84B818-EAAA-45F5-BD1F-EB13D5B7A29C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BA84B818-EAAA-45F5-BD1F-EB13D5B7A29C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BA84B818-EAAA-45F5-BD1F-EB13D5B7A29C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BA84B818-EAAA-45F5-BD1F-EB13D5B7A29C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA84B818-EAAA-45F5-BD1F-EB13D5B7A29C}.RemoteDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA84B818-EAAA-45F5-BD1F-EB13D5B7A29C}.RemoteDebug|Any CPU.Build.0 = Debug|Any CPU
 		{576402FA-1433-47DF-8677-B52CF30E7F3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{576402FA-1433-47DF-8677-B52CF30E7F3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{576402FA-1433-47DF-8677-B52CF30E7F3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{576402FA-1433-47DF-8677-B52CF30E7F3F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{576402FA-1433-47DF-8677-B52CF30E7F3F}.RemoteDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{576402FA-1433-47DF-8677-B52CF30E7F3F}.RemoteDebug|Any CPU.Build.0 = Debug|Any CPU
 		{D835B407-6ED1-402D-B34D-8F46A81A5DDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D835B407-6ED1-402D-B34D-8F46A81A5DDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D835B407-6ED1-402D-B34D-8F46A81A5DDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D835B407-6ED1-402D-B34D-8F46A81A5DDD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D835B407-6ED1-402D-B34D-8F46A81A5DDD}.RemoteDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D835B407-6ED1-402D-B34D-8F46A81A5DDD}.RemoteDebug|Any CPU.Build.0 = Debug|Any CPU
 		{99CE9DE3-7B1E-4D0D-A57F-9A783DF59E76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{99CE9DE3-7B1E-4D0D-A57F-9A783DF59E76}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{99CE9DE3-7B1E-4D0D-A57F-9A783DF59E76}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{99CE9DE3-7B1E-4D0D-A57F-9A783DF59E76}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99CE9DE3-7B1E-4D0D-A57F-9A783DF59E76}.RemoteDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99CE9DE3-7B1E-4D0D-A57F-9A783DF59E76}.RemoteDebug|Any CPU.Build.0 = Debug|Any CPU
 		{6AA578B2-50F1-4D7C-9E8C-AB8B94657FB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6AA578B2-50F1-4D7C-9E8C-AB8B94657FB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6AA578B2-50F1-4D7C-9E8C-AB8B94657FB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6AA578B2-50F1-4D7C-9E8C-AB8B94657FB7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6AA578B2-50F1-4D7C-9E8C-AB8B94657FB7}.RemoteDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6AA578B2-50F1-4D7C-9E8C-AB8B94657FB7}.RemoteDebug|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

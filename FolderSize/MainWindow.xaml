@@ -30,7 +30,7 @@
         <HierarchicalDataTemplate x:Key="FileEntryItemDataTemplate" ItemsSource="{Binding Path=.}" DataType="{x:Type magic:NestedSetItem}">
             <TextBlock DataContext="{Binding Path=Value}" d:DataContext="{d:DesignInstance Type=models:FileEntryItem}">
                 <Run Text="{Binding Path=DisplayText, Mode=OneWay}" />
-                <Run Text="{Binding Path=TotalLength, Mode=OneWay, Converter={StaticResource ReadableFilesizeConverter}}" />
+                <Run Text="{Binding Path=TotalFileSize, Mode=OneWay, Converter={StaticResource ReadableFilesizeConverter}}" />
             </TextBlock>
         </HierarchicalDataTemplate>
         <!-- , Converter={StaticResource ReadableFilesizeConverter} -->
@@ -46,7 +46,7 @@
                 HorizontalAlignment="Left" Height="36" VerticalAlignment="Top" />
 
         <TextBlock Grid.Row="0" Margin="124,5,05,05" HorizontalAlignment="Left" Width="197">
-            <Run Text="{Binding Path=Dirs.Count, Mode=OneWay}" /> <Run>Verzeichnisse gescannt</Run>
+            <Run Text="{Binding Path=DirTree.Lenght, Mode=OneWay}" /> <Run>Verzeichnisse gescannt</Run>
             <LineBreak />
             <Run Text="{Binding Path=TotalLength, Converter={StaticResource ReadableFilesizeConverter}, Mode=OneWay}" />
             <Run>Größe</Run>
@@ -67,7 +67,7 @@
                   VirtualizingStackPanel.IsVirtualizing="True"
                   VirtualizingStackPanel.VirtualizationMode="Recycling" />
         
-        <ItemsControl x:Name="ItemsControl" ItemsSource="{Binding Path=Dirs}" Background="BlanchedAlmond"
+        <!--<ItemsControl x:Name="ItemsControl" ItemsSource="{Binding Path=Dirs}" Background="BlanchedAlmond"
                       Margin="10"  >
             <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type models:FileEntryItem}" >
@@ -77,7 +77,7 @@
                     </TextBlock>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        </ItemsControl>-->
 
             </Grid>
         </Border>

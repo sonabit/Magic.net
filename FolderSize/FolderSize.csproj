@@ -57,6 +57,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="FilesystemWalker.cs" />
+    <Compile Include="LimitedConcurrencyLevelTaskScheduler.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="ViewModels\Common\BaseViewModel.cs" />
     <Compile Include="Models\FileEntryItem.cs" />

@@ -33,18 +33,16 @@ namespace FolderSize
             _viewModel.DirTree.Root = new FileEntryItem("", null, 0);
             DataContext = _viewModel;
             _viewModel.PropertyChanged += OnPropertyChanged;
-
-            var b = _viewModel.Dirs is ICollectionViewLiveShaping;
-
+            
             InitializeComponent();
 
             TreeView.Items.LiveSortingProperties.Add("Totalcount");
-            TreeView.Items.SortDescriptions.Add(new SortDescription("Value.TotalLength", ListSortDirection.Descending));
+            TreeView.Items.SortDescriptions.Add(new SortDescription("Value.TotalFileSize", ListSortDirection.Descending));
             TreeView.Items.IsLiveSorting = _viewModel.IsLiveSorting;
 
-            ItemsControl.Items.LiveSortingProperties.Add("TotalLength");
-            ItemsControl.Items.SortDescriptions.Add(new SortDescription("TotalLength", ListSortDirection.Descending));
-            ItemsControl.Items.IsLiveSorting = _viewModel.IsLiveSorting;
+            //ItemsControl.Items.LiveSortingProperties.Add("TotalFileSize");
+            //ItemsControl.Items.SortDescriptions.Add(new SortDescription("TotalFileSize", ListSortDirection.Descending));
+            //ItemsControl.Items.IsLiveSorting = _viewModel.IsLiveSorting;
 
 
             //ItemCollection
@@ -59,7 +57,7 @@ namespace FolderSize
             if (propertyChangedEventArgs.PropertyName == "IsLiveSorting")
             {
                 TreeView.Items.IsLiveSorting = _viewModel.IsLiveSorting;
-                ItemsControl.Items.IsLiveSorting = _viewModel.IsLiveSorting;
+                //ItemsControl.Items.IsLiveSorting = _viewModel.IsLiveSorting;
             }
         }
 
@@ -67,7 +65,7 @@ namespace FolderSize
         {
             var cvs = FindResource("cvs") as CollectionViewSource;
             if (cvs != null)
-                cvs.Source = _viewModel.DirTree.RootItem.OrderByDescending(i => i.Value.TotalLength).ToArray();
+                cvs.Source = _viewModel.DirTree.RootItem.OrderByDescending(i => i.Value.TotalFileSize).ToArray();
         }
     }
 }

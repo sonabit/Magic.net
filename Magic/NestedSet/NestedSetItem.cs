@@ -205,15 +205,24 @@ namespace Magic
         public NestedSetItem<T> Add(T item)
         {
             var result = new NestedSetItem<T>(0, 0 + 1, item, _set);
-            ((ICollection<NestedSetItem<T>>) this).Add(result);
+            ((ICollection<NestedSetItem<T>>)this).Add(result);
 
             return result;
         }
 
+        public NestedSetItem<T> NewItem(T item)
+        {
+            return new NestedSetItem<T>(0, 0 + 1, item, _set);
+        }
+
+        public void Add(NestedSetItem<T> item)
+        {
+            ((ICollection<NestedSetItem<T>>)this).Add(item);
+        }
+
         void ICollection<NestedSetItem<T>>.Add(NestedSetItem<T> item)
         {
-
-            lock (SyncRoot)
+            //lock (SyncRoot)
             {
 
                 var right = Right;
@@ -235,12 +244,12 @@ namespace Magic
                 item.Right = right + 1;
 
                 _set.Add(item);
-
+ }
                 OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add,
                     new ArrayList {item}));
                 RaisePropertyChanged("Count");
                 RaisePropertyChanged("TotalCount");
-            }
+           
         }
 
         int IList.Add(object item)
