@@ -7,9 +7,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{B7B518A8
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Magic", "Magic\Magic.csproj", "{D835B407-6ED1-402D-B34D-8F46A81A5DDD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagicTest", "Tests\MagicTest\MagicTest.csproj", "{99CE9DE3-7B1E-4D0D-A57F-9A783DF59E76}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{A0D1C58C-FDA8-48C8-AEAF-B0EE96CFD7F7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NUnit.MagicTest", "NUnit.MagicTest\NUnit.MagicTest.csproj", "{CA928FF9-080B-4741-9C75-C67E4D7CF2AA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,17 +24,17 @@ Global
 		{D835B407-6ED1-402D-B34D-8F46A81A5DDD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D835B407-6ED1-402D-B34D-8F46A81A5DDD}.RemoteDebug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D835B407-6ED1-402D-B34D-8F46A81A5DDD}.RemoteDebug|Any CPU.Build.0 = Debug|Any CPU
-		{99CE9DE3-7B1E-4D0D-A57F-9A783DF59E76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{99CE9DE3-7B1E-4D0D-A57F-9A783DF59E76}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{99CE9DE3-7B1E-4D0D-A57F-9A783DF59E76}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{99CE9DE3-7B1E-4D0D-A57F-9A783DF59E76}.Release|Any CPU.Build.0 = Release|Any CPU
-		{99CE9DE3-7B1E-4D0D-A57F-9A783DF59E76}.RemoteDebug|Any CPU.ActiveCfg = Debug|Any CPU
-		{99CE9DE3-7B1E-4D0D-A57F-9A783DF59E76}.RemoteDebug|Any CPU.Build.0 = Debug|Any CPU
+		{CA928FF9-080B-4741-9C75-C67E4D7CF2AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA928FF9-080B-4741-9C75-C67E4D7CF2AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA928FF9-080B-4741-9C75-C67E4D7CF2AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA928FF9-080B-4741-9C75-C67E4D7CF2AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA928FF9-080B-4741-9C75-C67E4D7CF2AA}.RemoteDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA928FF9-080B-4741-9C75-C67E4D7CF2AA}.RemoteDebug|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{99CE9DE3-7B1E-4D0D-A57F-9A783DF59E76} = {B7B518A8-1A14-45F7-B3EB-B613E3327CB8}
+		{CA928FF9-080B-4741-9C75-C67E4D7CF2AA} = {B7B518A8-1A14-45F7-B3EB-B613E3327CB8}
 	EndGlobalSection
 EndGlobal
