@@ -60,7 +60,7 @@ namespace NUnit.MagicTest
        [Test]
         public void TestRoot()
         {
-            Assert.AreEqual(3, _set.RootItem.Left);
+            Assert.AreEqual(1, _set.RootItem.Left);
             Assert.AreEqual(22, _set.RootItem.Right);
 
             Assert.AreEqual(10, _set.RootItem.TotalCount);
