@@ -2,6 +2,7 @@
 using Magic;
 using MagicTest.Models;
 using NUnit.Framework;
+// ReSharper disable UnusedVariable
 
 namespace NUnit.MagicTest
 {
@@ -31,9 +32,12 @@ namespace NUnit.MagicTest
 
         [SetUp]
         public void InitTest()
-        { 
-            _set = new NestedSet<TestClass>();
-            _set.Root = new TestClass(); ;
+        {
+            _set = new NestedSet<TestClass>
+            {
+                Root = new TestClass()
+            };
+            
             _item1 = _set.RootItem;
 
             _item2 = _item1.Add(new TestClass());
@@ -64,7 +68,7 @@ namespace NUnit.MagicTest
             Assert.AreEqual(22, _set.RootItem.Right);
 
             Assert.AreEqual(10, _set.RootItem.TotalCount);
-            Assert.AreEqual(3, _set.RootItem.Count());
+            Assert.AreEqual(3, _set.RootItem.Count);
             Assert.AreEqual(3, _set.RootItem.Count);
         }
 
@@ -106,13 +110,13 @@ namespace NUnit.MagicTest
             Assert.AreEqual(1, _item1.Left);
             Assert.AreEqual(expectRight1, _item1.Right);
             Assert.AreEqual(11, _item1.TotalCount);
-            Assert.AreEqual(3, _item1.Count());
+            Assert.AreEqual(3, _item1.Count);
             Assert.AreEqual(3, _item1.Count);
 
             Assert.AreEqual(8, _item8.Left);
             Assert.AreEqual(expectRight8, _item8.Right);
             Assert.AreEqual(2, _item8.TotalCount);
-            Assert.AreEqual(2, _item8.Count());
+            Assert.AreEqual(2, _item8.Count);
             Assert.AreEqual(2, _item8.Count);
 
         }
