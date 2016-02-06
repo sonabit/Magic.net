@@ -49,6 +49,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\AssemblyVersionInfo.cs">
+      <Link>Properties\AssemblyVersionInfo.cs</Link>
+    </Compile>
     <Compile Include="Comparer.cs" />
     <Compile Include="NestedSet\NestedSet.cs" />
     <Compile Include="NestedSet\NestedSetItem.cs" />
@@ -62,7 +65,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\magic.snk">
-      <Link>magic.snk</Link>
+      <Link>Properties\magic.snk</Link>
     </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
