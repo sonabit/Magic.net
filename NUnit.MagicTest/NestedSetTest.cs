@@ -6,7 +6,7 @@ using NUnit.Framework;
 
 namespace NUnit.MagicTest
 {
-    [TestFixture()]
+    [TestFixture]
     public class NestedSetTest
     {
         private NestedSet<TestClass> _set;
