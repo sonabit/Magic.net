@@ -29,9 +29,9 @@ namespace Magic
             Value = value;
         }
 
-        internal long Left { get; private set; }
+        public long Left { get; private set; }
 
-        internal long Right { get; private set; }
+        public long Right { get; private set; }
 
         public T Value { get; set; }
 
