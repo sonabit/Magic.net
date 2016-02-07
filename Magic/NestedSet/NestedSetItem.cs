@@ -9,6 +9,11 @@ using System.Runtime.CompilerServices;
 
 namespace Magic
 {
+    public abstract class NestedSetItem
+    {
+        public abstract object Value { get; protected set; }
+    }
+
     /// <summary>
     ///     A Entry of a nested set
     /// </summary>
@@ -27,6 +32,7 @@ namespace Magic
             Left = left;
             Right = right;
             Value = value;
+            IsFixedSize = false;
         }
 
         public long Left { get; private set; }
@@ -123,12 +129,12 @@ namespace Magic
 
         internal class NestedSetItemEnumerator : IEnumerator<T>
         {
-            private readonly NestedSetItem<T> _rootItem;
+            //private readonly NestedSetItem<T> _rootItem;
             private IEnumerator<NestedSetItem<T>> _enumerator;
 
             internal NestedSetItemEnumerator(NestedSetItem<T> rootItem)
             {
-                _rootItem = rootItem;
+                //_rootItem = rootItem;
                 _enumerator = new NextLevelEnumerator(rootItem);
                 // bedingung erstellen nur elemente des nächsten levels
             }
@@ -143,6 +149,7 @@ namespace Magic
                 }
                 catch
                 {
+                    // ignored
                 }
                 _enumerator = null;
             }
@@ -186,11 +193,8 @@ namespace Magic
 
         public IEnumerator<NestedSetItem<T>> GetEnumerator()
         {
-            var n = new NextLevelEnumerator(this);
-            var left = Left;
-            var right = Right;
-            var t = _set.Where(i => i.Left > left && i.Right < right).AsEnumerable().GetEnumerator();
-            return n;
+            var enumerator = new NextLevelEnumerator(this);
+            return enumerator;
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -205,7 +209,7 @@ namespace Magic
         public NestedSetItem<T> Add(T item)
         {
             var result = new NestedSetItem<T>(0, 0 + 1, item, _set);
-            ((ICollection<NestedSetItem<T>>)this).Add(result);
+            ((ICollection<NestedSetItem<T>>) this).Add(result);
 
             return result;
         }
@@ -217,14 +221,13 @@ namespace Magic
 
         public void Add(NestedSetItem<T> item)
         {
-            ((ICollection<NestedSetItem<T>>)this).Add(item);
+            ((ICollection<NestedSetItem<T>>) this).Add(item);
         }
 
         void ICollection<NestedSetItem<T>>.Add(NestedSetItem<T> item)
         {
             //lock (SyncRoot)
             {
-
                 var right = Right;
                 _set.Each(i =>
                 {
@@ -244,12 +247,11 @@ namespace Magic
                 item.Right = right + 1;
 
                 _set.Add(item);
- }
-                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add,
-                    new ArrayList {item}));
-                RaisePropertyChanged("Count");
-                RaisePropertyChanged("TotalCount");
-           
+            }
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add,
+                new ArrayList {item}));
+            RaisePropertyChanged("Count");
+            RaisePropertyChanged("TotalCount");
         }
 
         int IList.Add(object item)
@@ -374,10 +376,5 @@ namespace Magic
         public bool IsFixedSize { get; private set; }
 
         #endregion
-    }
-
-    public abstract class NestedSetItem
-    {
-        public abstract object Value { get; protected set; }
     }
 }
