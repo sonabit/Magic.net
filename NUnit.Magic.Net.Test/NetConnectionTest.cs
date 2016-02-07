@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using FakeItEasy;
-using FakeItEasy.ExtensionSyntax.Full;
-using Magic.Net;
 using NUnit.Framework;
 using NUnit.Magic.Net.Test.Helper;
 
