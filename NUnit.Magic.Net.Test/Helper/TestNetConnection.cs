@@ -3,11 +3,13 @@ using Magic.Net;
 
 namespace NUnit.Magic.Net.Test.Helper
 {
+    
+    // ReSharper disable once ClassNeverInstantiated.Global
     public class TestNetConnection : NetConnectionAbstract
     {
-        public virtual byte[] WrapedReadData()
+        public virtual NetCommandPackage WrapedReadData()
         {
-            return ReadData();
+             throw new NotImplementedException();
         }
 
         public virtual void WrapedWriteData(byte[] data)
@@ -27,16 +29,28 @@ namespace NUnit.Magic.Net.Test.Helper
             get { throw new NotImplementedException(); }
         }
 
-        protected override byte[] ReadData()
+        
+        protected override NetCommandPackage ReadData()
         {
-            throw new NotImplementedException();
+            return WrapedReadData();
         }
 
         protected override void SendData(byte[] data)
         {
-            throw new NotImplementedException();
+            WrapedWriteData(data);
         }
 
         #endregion
+
+        public override void OnReceivedData(NetCommandPackage buffer)
+        {
+            
+
+        }
+        
+        public void AddAddToReceivedDataQueue(NetCommandPackage package)
+        {
+            base.AddToReceivedDataQueue(package);
+        }
     }
 }

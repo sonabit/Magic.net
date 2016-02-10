@@ -1,32 +1,31 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Diagnostics;
 using System.Threading;
-using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace Magic.Net
 {
     public abstract class NetConnectionAbstract : INetConnection
     {
-        private readonly ConcurrentQueue<byte[]> _receivedDataQueue = new ConcurrentQueue<byte[]>();
+        private readonly ConcurrentQueue<NetCommandPackage> _receivedDataQueue =
+            new ConcurrentQueue<NetCommandPackage>();
+
         private readonly AutoResetEvent _receivedDataResetEvent = new AutoResetEvent(false);
 
         public abstract void Connect();
 
         public abstract bool IsConnected { get; }
-        
-        protected abstract byte[] ReadData();
+
+        protected abstract NetCommandPackage ReadData();
 
         protected abstract void SendData(byte[] data);
 
         public void Run(bool withNewThread = false)
         {
-
             if (withNewThread)
             {
-                (new Thread(RunInternal)).Start();
+                new Thread(RunInternal).Start();
             }
             else
             {
@@ -36,6 +35,7 @@ namespace Magic.Net
 
         private void RunInternal()
         {
+            new Thread(ProcessingReceivedDataQueueInternal) {IsBackground = true}.Start();
             ReadDataInternal();
         }
 
@@ -45,9 +45,9 @@ namespace Magic.Net
             {
                 try
                 {
-                    byte[] buffer = ReadData();
-                    if (buffer != null && buffer.Length > 0)
-                        AddToReceivedDataQueue(buffer);
+                    var package = ReadData();
+                    if (package != null && package.Buffer.Length > 0)
+                        AddToReceivedDataQueue(package);
                 }
                 catch (Exception)
                 {
@@ -57,10 +57,73 @@ namespace Magic.Net
             }
         }
 
-        private void AddToReceivedDataQueue(byte[] buffer)
+        private void ProcessingReceivedDataQueueInternal()
+        {
+            while (IsConnected)
+            {
+                try
+                {
+                    _receivedDataResetEvent.WaitOne();
+                    while (!_receivedDataQueue.IsEmpty)
+                    {
+                        NetCommandPackage package = null;
+                        if (!_receivedDataQueue.TryDequeue(out package))
+                            break;
+                        if (package.Buffer.Length == 0) continue;
+
+                        DataPackageContenttyp packageTyp = (DataPackageContenttyp) package.Buffer[0];
+
+                        switch (packageTyp)
+                        {
+                            case DataPackageContenttyp.NetCommand:
+                                HandelReceivedData(package);
+                                break;
+                            default:
+                                // this case should never happened
+                                throw new ArgumentOutOfRangeException();
+                        }
+                    }
+                }
+                catch (ThreadAbortException)
+                {
+                    break;
+                }
+                catch (ObjectDisposedException)
+                {
+                    break;
+                }
+            }
+        }
+
+        protected void AddToReceivedDataQueue([NotNull] NetCommandPackage buffer)
         {
             _receivedDataQueue.Enqueue(buffer);
             _receivedDataResetEvent.Set();
         }
+
+        private void HandelReceivedData([NotNull] NetCommandPackage package)
+        {
+            if (!ThreadPool.QueueUserWorkItem(HandelReceivedDataCallBack, package))
+                throw new Exception("mööp");
+        }
+
+        private void HandelReceivedDataCallBack([NotNull] object package)
+        {
+            Console.WriteLine("HandelReceivedDataCallBack");
+            OnReceivedData((NetCommandPackage) package);
+        }
+
+        public virtual void OnReceivedData([NotNull] NetCommandPackage buffer)
+        {
+        }
+    }
+
+    /// <summary>
+    /// Specifies a data package of NetConnection
+    /// </summary>
+    public enum DataPackageContenttyp : byte
+    {
+        NetCommand = 0x1,
+        NetCommandStream = 0x10
     }
 }
