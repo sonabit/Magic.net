@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Threading;
 using JetBrains.Annotations;
 
@@ -68,19 +69,11 @@ namespace Magic.Net
                         NetCommandPackage package = null;
                         if (!_receivedDataQueue.TryDequeue(out package))
                             break;
-                        if (package.IsEmpty) continue;
+                        if (package.Buffer.Length == 0) continue;
 
-                        switch (package.Version)
-                        {
-                            case 1:
-                                // accept Version 1
-                                break;
-                            default:
-                                throw new NotSupportedException(
-                                    string.Format("NetCommandPackage version {0} not supported!", package.Version));
-                        }
+                        DataPackageContenttyp packageTyp = (DataPackageContenttyp) package.Buffer[0];
 
-                        switch (package.PackageContenttyp)
+                        switch (packageTyp)
                         {
                             case DataPackageContenttyp.NetCommand:
                                 HandelReceivedData(package);
@@ -126,7 +119,7 @@ namespace Magic.Net
     }
 
     /// <summary>
-    ///     Specifies a data package of NetConnection
+    /// Specifies a data package of NetConnection
     /// </summary>
     public enum DataPackageContenttyp : byte
     {
