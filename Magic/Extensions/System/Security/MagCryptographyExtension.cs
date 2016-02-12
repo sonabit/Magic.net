@@ -1,4 +1,5 @@
 ﻿
+ // ReSharper disable once CheckNamespace
 namespace System.Security.Cryptography
 {
     using System.IO;

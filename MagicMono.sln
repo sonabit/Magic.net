@@ -18,7 +18,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{C76A05
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NUnit.Magic.Net.Test", "NUnit.Magic.Net.Test\NUnit.Magic.Net.Test.csproj", "{A97FFB8B-C4B1-4D24-87A1-C69A2A188139}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "MagicSharedProject", "MagicSharedProject\MagicSharedProject.shproj", "{CBEC5BE0-FD91-49B5-8A9D-872EF79F595E}"
+EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		MagicSharedProject\MagicSharedProject.projitems*{cbec5be0-fd91-49b5-8a9d-872ef79f595e}*SharedItemsImports = 13
+		MagicSharedProject\MagicSharedProject.projitems*{d835b407-6ed1-402d-b34d-8f46a81a5ddd}*SharedItemsImports = 4
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU

@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>cbec5be0-fd91-49b5-8a9d-872ef79f595e</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>MagicSharedProject</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Net\INetConnection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Net\NetCommandPackage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Net\NetConnectionAbstract.cs" />
+  </ItemGroup>
+</Project>
