@@ -52,5 +52,10 @@ namespace NUnit.Magic.Net.Test.Helper
         {
             base.AddToReceivedDataQueue(package);
         }
+
+        public void CallDequeueReceivedData()
+        {
+            base.DequeueReceivedData();
+        }
     }
 }

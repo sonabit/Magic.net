@@ -63,33 +63,7 @@ namespace Magic.Net
                 try
                 {
                     _receivedDataResetEvent.WaitOne();
-                    while (!_receivedDataQueue.IsEmpty)
-                    {
-                        NetCommandPackage package = null;
-                        if (!_receivedDataQueue.TryDequeue(out package))
-                            break;
-                        if (package.IsEmpty) continue;
-
-                        switch (package.Version)
-                        {
-                            case 1:
-                                // accept Version 1
-                                break;
-                            default:
-                                throw new NotSupportedException(
-                                    string.Format("NetCommandPackage version {0} not supported!", package.Version));
-                        }
-
-                        switch (package.PackageContenttyp)
-                        {
-                            case DataPackageContenttyp.NetCommand:
-                                HandelReceivedData(package);
-                                break;
-                            default:
-                                // this case should never happened
-                                throw new ArgumentOutOfRangeException();
-                        }
-                    }
+                    DequeueReceivedData();
                 }
                 catch (ThreadAbortException)
                 {
@@ -98,6 +72,37 @@ namespace Magic.Net
                 catch (ObjectDisposedException)
                 {
                     break;
+                }
+            }
+        }
+
+        protected void DequeueReceivedData()
+        {
+            while (!_receivedDataQueue.IsEmpty)
+            {
+                NetCommandPackage package = null;
+                if (!_receivedDataQueue.TryDequeue(out package))
+                    break;
+                if (package.IsEmpty) continue;
+
+                switch (package.Version)
+                {
+                    case 1:
+                        // accept Version 1
+                        break;
+                    default:
+                        throw new NotSupportedException(
+                            string.Format("NetCommandPackage version {0} not supported!", package.Version));
+                }
+
+                switch (package.PackageContenttyp)
+                {
+                    case DataPackageContenttyp.NetCommand:
+                        HandelReceivedData(package);
+                        break;
+                    default:
+                        // this case should never happened
+                        throw new ArgumentOutOfRangeException();
                 }
             }
         }

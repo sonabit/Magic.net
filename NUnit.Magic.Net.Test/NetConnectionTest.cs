@@ -21,12 +21,7 @@ namespace NUnit.Magic.Net.Test
             
             A.CallTo(() => connection.IsConnected).Returns(true);
 
-            // Abort after 300 Milliseconds
-            Task.Delay(TimeSpan.FromMilliseconds(300))
-                .ContinueWith(t => A.CallTo(() => connection.IsConnected).Returns(false));
-
-            connection.Run();
-            Thread.Sleep(7000);
+            connection.CallDequeueReceivedData();
 
             A.CallTo(() => connection.OnReceivedData(buffer)).MustHaveHappened(Repeated.AtLeast.Once);
         }
@@ -38,16 +33,19 @@ namespace NUnit.Magic.Net.Test
             NetCommandPackage buffer = new NetCommandPackage(new byte[] { 20, 1, 0, 0, 0, });
             connection.AddAddToReceivedDataQueue(buffer);
 
-            A.CallTo(() => connection.IsConnected).Returns(true);
+            Assert.Throws<NotSupportedException>(connection.CallDequeueReceivedData);
 
-            // Abort after 300 Milliseconds
-            Task.Delay(TimeSpan.FromMilliseconds(600))
-                .ContinueWith(t => A.CallTo(() => connection.IsConnected).Returns(false));
-
-            connection.Run();
-            Thread.Sleep(700);
-            
         }
 
+    }
+
+    [TestFixture]
+    public class NetCommandPackageTests
+    {
+        [Test]
+        public void Create_NetCommandPackage()
+        {
+            
+        }
     }
 }
