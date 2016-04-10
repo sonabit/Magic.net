@@ -15,22 +15,24 @@ namespace NUnit.Magic.Net.Test
         [Test]
         public void NetConnectionOnReceivedDataOkTest()
         {
-            TestNetConnection connection = A.Fake<TestNetConnection>(o => o.CallsBaseMethods());
+            INetConnectionPackageManager packageManager = A.Fake<INetConnectionPackageManager>();
+            INetConnectionAdapter adapter = A.Fake<INetConnectionAdapter>();
+            TestNetConnection connection = new TestNetConnection(adapter, packageManager);
             NetCommandPackage buffer = new NetCommandPackage(new byte[] { 1, 1, 0, 0, 0, });
             connection.AddAddToReceivedDataQueue(buffer);
-            
-            A.CallTo(() => connection.IsConnected).Returns(true);
-
             connection.CallDequeueReceivedData();
 
-            A.CallTo(() => connection.OnReceivedData(buffer)).MustHaveHappened(Repeated.AtLeast.Once);
+            A.CallTo(() => packageManager.ReceivedData(buffer)).MustHaveHappened(Repeated.Exactly.Once);
         }
 
         [Test]
-        public void When_Version_Is_not_1()
+        public void When_Version_Is_Not_1()
         {
-            TestNetConnection connection = A.Fake<TestNetConnection>(o => o.CallsBaseMethods());
+            INetConnectionPackageManager packageManager = A.Fake<INetConnectionPackageManager>();
+            INetConnectionAdapter adapter = A.Fake<INetConnectionAdapter>();
+            TestNetConnection connection = new TestNetConnection(adapter, packageManager);  
             NetCommandPackage buffer = new NetCommandPackage(new byte[] { 20, 1, 0, 0, 0, });
+
             connection.AddAddToReceivedDataQueue(buffer);
 
             Assert.Throws<NotSupportedException>(connection.CallDequeueReceivedData);
