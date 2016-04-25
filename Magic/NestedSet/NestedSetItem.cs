@@ -18,15 +18,26 @@ namespace Magic
     ///     A Entry of a nested set
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    [DebuggerDisplay("{Value}")]
+    [DebuggerDisplay("Left:{Left} ({Count}) Right:{Right}")]
     public sealed class NestedSetItem<T> : ICollection<NestedSetItem<T>>, IList, ICollection, INotifyCollectionChanged,
         INotifyPropertyChanged
         where T : class
     {
         internal static IComparer<NestedSetItem<T>> Comparer = new Comparer<NestedSetItem<T>, long>(item => item.Left);
-        private readonly SortedSet<NestedSetItem<T>> _set;
+        private readonly LinkedListNode<NestedSetItem<T>> _set;
 
-        internal NestedSetItem(long left, long right, T value, SortedSet<NestedSetItem<T>> set)
+        private readonly List<NestedSetItem<T>> _parents = new List<NestedSetItem<T>>();
+
+        public NestedSetItem(T value)
+        {
+            _set = new LinkedListNode<NestedSetItem<T>>(this);
+            Left = 0;
+            Right = 1;
+            Value = value;
+            IsFixedSize = false;
+        }
+
+        internal NestedSetItem(long left, long right, T value, LinkedListNode<NestedSetItem<T>> set)
         {
             _set = set;
             Left = left;
@@ -49,8 +60,12 @@ namespace Magic
         {
             var left = Left;
             var right = Right;
-            var t = _set.Where(i => i.Left > left && i.Right < right).AsEnumerable();
-            return t;
+            LinkedListNode<NestedSetItem<T>> node = _set.Next;
+            while (node != null && node.Value.Left > left && node.Value.Right < right)
+            {
+                yield return node.Value;
+                node = node.Next;
+            }
         }
 
         private void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
@@ -78,10 +93,10 @@ namespace Magic
             {
                 //var left = _rootItem.Left;
                 //var right = _rootItem.Right;
-                var t =
-                    _rootItem._set.Where(i => i.Left > _rootItem.Left && i.Right < _rootItem.Right)
-                        .AsEnumerable()
-                        .GetEnumerator();
+                var t = _rootItem.AsAllChildren().GetEnumerator();
+                  //_set.Where(i => i.Left > _rootItem.Left && i.Right < _rootItem.Right)
+                  //      .AsEnumerable()
+                  //      .GetEnumerator();
                 return t;
             }
 
@@ -107,8 +122,24 @@ namespace Magic
 
             public bool MoveNext()
             {
-                var left = Current != null ? Current.Right + 1 : _rootItem.Left + 1;
-                Current = _rootItem._set.FirstOrDefault(i => i.Left == left);
+                long left = Current != null ? Current.Right + 1 : _rootItem.Left + 1;
+                long right = _rootItem.Right;
+
+                LinkedListNode<NestedSetItem<T>> listNode = _rootItem._set.Next;
+                while (listNode != null)
+                {
+                    if (listNode.Value.Left > right)
+                    {
+                        listNode = null;
+                        break;
+                    }
+                    if (listNode.Value.Left == left)
+                    {
+                        break;
+                    }
+                     listNode = listNode.Next;
+                }
+                Current = listNode != null? listNode.Value : null;
                 return Current != null;
             }
 
@@ -129,7 +160,6 @@ namespace Magic
 
         internal class NestedSetItemEnumerator : IEnumerator<T>
         {
-            //private readonly NestedSetItem<T> _rootItem;
             private IEnumerator<NestedSetItem<T>> _enumerator;
 
             internal NestedSetItemEnumerator(NestedSetItem<T> rootItem)
@@ -193,7 +223,7 @@ namespace Magic
 
         public IEnumerator<NestedSetItem<T>> GetEnumerator()
         {
-            var enumerator = new NextLevelEnumerator(this);
+            NextLevelEnumerator enumerator = new NextLevelEnumerator(this);
             return enumerator;
         }
 
@@ -208,16 +238,17 @@ namespace Magic
 
         public NestedSetItem<T> Add(T item)
         {
-            var result = new NestedSetItem<T>(0, 0 + 1, item, _set);
+            LinkedListNode<NestedSetItem<T>> node = Create(0L, 1L, item);
+            NestedSetItem<T> result = node.Value;
             ((ICollection<NestedSetItem<T>>) this).Add(result);
 
             return result;
         }
 
-        public NestedSetItem<T> NewItem(T item)
-        {
-            return new NestedSetItem<T>(0, 0 + 1, item, _set);
-        }
+        //public NestedSetItem<T> NewItem(T item)
+        //{
+        //    return new NestedSetItem<T>(0, 1, item, _set);
+        //}
 
         public void Add(NestedSetItem<T> item)
         {
@@ -229,27 +260,43 @@ namespace Magic
             //lock (SyncRoot)
             {
                 var right = Right;
-                _set.Each(i =>
+                var count = right - Left;
+                //var i = right + 1;
+
+                var listNode = _set;
+                while (listNode != null)
                 {
-                    if (i.Left > right)
+                    if (listNode.Value.Left > right)
                     {
-                        i.Left += 2;
-                        i.Right += 2;
-                        return;
-                    }
-                    if (i.Right > right)
+                        listNode.Value.Left += 2;
+                        listNode.Value.Right += 2;
+                       
+                    }else
+                    if (listNode.Value.Right > right)
                     {
-                        i.Right += 2;
+                        listNode.Value.Right += 2;
                     }
-                });
+                    listNode = listNode.Next;
+                }
+
                 Right += 2;
                 item.Left = right;
                 item.Right = right + 1;
+                var last = AsAllChildren().LastOrDefault() ?? this;
+                _set.List.AddAfter(last._set, item._set);
 
-                _set.Add(item);
+
+                foreach (var parent in _parents)
+                {
+                    parent.Right += 2;
+                    item._parents.Add(parent);
+                }
+                item._parents.Add(this);
+                
+                //if (_set != _set.List.First)
+                //  _set.List.First.Value.Right += 2;
             }
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add,
-                new ArrayList {item}));
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new ArrayList {item}));
             RaisePropertyChanged("Count");
             RaisePropertyChanged("TotalCount");
         }
@@ -343,11 +390,36 @@ namespace Magic
         {
             get
             {
-                var result = 0;
-                var e = new NextLevelEnumerator(this);
-                while (e.MoveNext())
+                int result = TotalCount;
+                if (result == 0 || result == 1)
                 {
-                    result++;
+                    return result;
+                }
+
+                long left = Left + 1;
+                result = 0;
+                LinkedListNode<NestedSetItem<T>> listNode = this._set.Next;
+                while (listNode != null)
+                {
+                    var item = listNode.Value;
+                    if (item.Left > Right)
+                    {
+                        break;
+                    }
+                    if (item.Left == left)
+                    {
+                        left = item.Right + 1;
+                        result++;
+                    }
+                    listNode = listNode.Next;
+                }
+                return result;
+                using (NextLevelEnumerator e = new NextLevelEnumerator(this))
+                {
+                    while (e.MoveNext())
+                    {
+                        result++;
+                    }
                 }
                 return result;
             }
@@ -376,5 +448,25 @@ namespace Magic
         public bool IsFixedSize { get; private set; }
 
         #endregion
+
+        internal static LinkedListNode<NestedSetItem<T>> Create(long left, long right, T value)
+        {
+            LinkedListNode<NestedSetItem<T>> listNode = new LinkedListNode<NestedSetItem<T>>(null);
+            NestedSetItem<T> item = new NestedSetItem<T>(left, right, value, listNode);
+            listNode.Value = item;
+            return listNode;
+        }
+
+        public static LinkedListNode<NestedSetItem<T>> Create(T value)
+        {
+            return Create(0, 1, value);
+        }
+
+        internal static LinkedListNode<NestedSetItem<T>> Create(NestedSetItem<T> item)
+        {
+            LinkedListNode<NestedSetItem<T>> listNode = new LinkedListNode<NestedSetItem<T>>(null);
+            listNode.Value = item;
+            return listNode;
+        }
     }
 }

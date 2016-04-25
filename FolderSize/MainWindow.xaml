@@ -50,6 +50,7 @@
             <LineBreak />
             <Run Text="{Binding Path=TotalLength, Converter={StaticResource ReadableFilesizeConverter}, Mode=OneWay}" />
             <Run>Größe</Run>
+            <Run Text="{Binding Path=DirTree.RootItem.Value.TotalFileCount, Mode=OneWay}" />
         </TextBlock>
 
         <CheckBox Grid.Row="0" IsChecked="{Binding Path=IsLiveSorting}" IsThreeState="True" Margin="285,19,72,10"

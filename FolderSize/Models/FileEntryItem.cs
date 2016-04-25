@@ -10,6 +10,7 @@ namespace FolderSize.Models
     {
         private readonly Action<long> _call;
         private long _totalFileSize;
+        private long _totalFileCount;
 
         public FileEntryItem(string path, Action<long> call, int level)
         {
@@ -30,19 +31,23 @@ namespace FolderSize.Models
         public long TotalFileSize
         {
             get { return _totalFileSize; }
-            private set
-            {
-                if (value == _totalFileSize) return;
-                _totalFileSize = value;
-                OnPropertyChanged();
-            }
+            //private set
+            //{
+            //    if (value == _totalFileSize) return;
+            //    _totalFileSize = value;
+            //    OnPropertyChanged();
+            //}
         }
 
-        public void AddLength(long length)
+        public long TotalFileCount { get { return _totalFileCount; } }
+
+        public void AddFileSize(long fileSize)
         {
-            Interlocked.Add(ref _totalFileSize, length);
+            Interlocked.Add(ref _totalFileSize, fileSize);
+            Interlocked.Add(ref _totalFileCount, 1L);
             OnPropertyChanged("TotalFileSize");
-            _call(length);
+            OnPropertyChanged("TotalFileCount");
+            _call(fileSize);
         }
     }
 }
