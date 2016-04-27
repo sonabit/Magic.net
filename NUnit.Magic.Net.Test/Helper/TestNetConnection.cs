@@ -7,7 +7,14 @@ namespace NUnit.Magic.Net.Test.Helper
     // ReSharper disable once ClassNeverInstantiated.Global
     public class TestNetConnection : NetConnectionAbstract
     {
-        public virtual NetCommandPackage WrapedReadData()
+
+        public TestNetConnection(IDataPackageHandler netCommandHandler)
+            :base(netCommandHandler)
+        {
+            
+        }
+
+        public virtual NetDataPackage WrapedReadData()
         {
              throw new NotImplementedException();
         }
@@ -30,7 +37,7 @@ namespace NUnit.Magic.Net.Test.Helper
         }
 
         
-        protected override NetCommandPackage ReadData()
+        protected override NetDataPackage ReadData()
         {
             return WrapedReadData();
         }
@@ -42,13 +49,13 @@ namespace NUnit.Magic.Net.Test.Helper
 
         #endregion
 
-        public override void OnReceivedData(NetCommandPackage buffer)
+        public void OnReceivedData(NetDataPackage buffer)
         {
             
 
         }
         
-        public void AddAddToReceivedDataQueue(NetCommandPackage package)
+        public void AddAddToReceivedDataQueue(NetDataPackage package)
         {
             base.AddToReceivedDataQueue(package);
         }

@@ -7,16 +7,22 @@ namespace Magic.Net
 {
     public abstract class NetConnectionAbstract : INetConnection
     {
-        private readonly ConcurrentQueue<NetCommandPackage> _receivedDataQueue =
-            new ConcurrentQueue<NetCommandPackage>();
+        private readonly ConcurrentQueue<NetDataPackage> _receivedDataQueue =
+            new ConcurrentQueue<NetDataPackage>();
 
         private readonly AutoResetEvent _receivedDataResetEvent = new AutoResetEvent(false);
+        private readonly IDataPackageDispatcher _dataPackageDispatcher;
+
+        protected NetConnectionAbstract(IDataPackageHandler netCommandHandler)
+        {
+            _dataPackageDispatcher = new DataPackageDispatcher(netCommandHandler);
+        }
 
         public abstract void Connect();
 
         public abstract bool IsConnected { get; }
 
-        protected abstract NetCommandPackage ReadData();
+        protected abstract NetDataPackage ReadData();
 
         protected abstract void SendData(byte[] data);
 
@@ -80,62 +86,20 @@ namespace Magic.Net
         {
             while (!_receivedDataQueue.IsEmpty)
             {
-                NetCommandPackage package = null;
+                NetDataPackage package = null;
                 if (!_receivedDataQueue.TryDequeue(out package))
                     break;
                 if (package.IsEmpty) continue;
 
-                switch (package.Version)
-                {
-                    case 1:
-                        // accept Version 1
-                        break;
-                    default:
-                        throw new NotSupportedException(
-                            string.Format("NetCommandPackage version {0} not supported!", package.Version));
-                }
-
-                switch (package.PackageContenttyp)
-                {
-                    case DataPackageContenttyp.NetCommand:
-                        HandelReceivedData(package);
-                        break;
-                    default:
-                        // this case should never happened
-                        throw new ArgumentOutOfRangeException();
-                }
+                _dataPackageDispatcher.Handle(package);
             }
         }
 
-        protected void AddToReceivedDataQueue([NotNull] NetCommandPackage buffer)
+        protected void AddToReceivedDataQueue([NotNull] NetDataPackage buffer)
         {
             _receivedDataQueue.Enqueue(buffer);
             _receivedDataResetEvent.Set();
         }
-
-        private void HandelReceivedData([NotNull] NetCommandPackage package)
-        {
-            if (!ThreadPool.QueueUserWorkItem(HandelReceivedDataCallBack, package))
-                throw new Exception("mööp");
-        }
-
-        private void HandelReceivedDataCallBack([NotNull] object package)
-        {
-            Console.WriteLine("HandelReceivedDataCallBack");
-            OnReceivedData((NetCommandPackage) package);
-        }
-
-        public virtual void OnReceivedData([NotNull] NetCommandPackage buffer)
-        {
-        }
-    }
-
-    /// <summary>
-    ///     Specifies a data package of NetConnection
-    /// </summary>
-    public enum DataPackageContenttyp : byte
-    {
-        NetCommand = 0x1,
-        NetCommandStream = 0x10
+        
     }
 }
