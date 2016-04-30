@@ -292,14 +292,15 @@ namespace Magic
                     item._parents.Add(parent);
                 }
                 item._parents.Add(this);
+                item.Parent = this;
                 
-                //if (_set != _set.List.First)
-                //  _set.List.First.Value.Right += 2;
             }
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new ArrayList {item}));
             RaisePropertyChanged("Count");
             RaisePropertyChanged("TotalCount");
         }
+
+        public NestedSetItem<T> Parent { get; private set; }
 
         int IList.Add(object item)
         {

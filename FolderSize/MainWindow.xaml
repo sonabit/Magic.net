@@ -9,6 +9,7 @@
         xmlns:componentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         xmlns:models="clr-namespace:FolderSize.Models"
         xmlns:magic="clr-namespace:Magic;assembly=Magic"
+        xmlns:folderSize="clr-namespace:FolderSize"
         mc:Ignorable="d" d:DataContext="{d:DesignInstance Type=viewModels:MainViewModel}"
         Title="Sample Folder HeadMap" Height="350" Width="525">
     <FrameworkElement.Resources>
@@ -27,13 +28,15 @@
 
         <converter:ReadableFilesizeConverter x:Key="ReadableFilesizeConverter" />
 
-        <HierarchicalDataTemplate x:Key="FileEntryItemDataTemplate" ItemsSource="{Binding Path=.}" DataType="{x:Type magic:NestedSetItem}">
+        <folderSize:ToListCollectionViewConverter x:Key="CollectionConverter"/>
+
+        <HierarchicalDataTemplate x:Key="FileEntryItemDataTemplate" ItemsSource="{Binding Path=., Converter={StaticResource CollectionConverter}}" DataType="{x:Type magic:NestedSetItem}">
+
             <TextBlock DataContext="{Binding Path=Value}" d:DataContext="{d:DesignInstance Type=models:FileEntryItem}">
                 <Run Text="{Binding Path=DisplayText, Mode=OneWay}" />
                 <Run Text="{Binding Path=TotalFileSize, Mode=OneWay, Converter={StaticResource ReadableFilesizeConverter}}" />
             </TextBlock>
         </HierarchicalDataTemplate>
-        <!-- , Converter={StaticResource ReadableFilesizeConverter} -->
 
     </FrameworkElement.Resources>
     <Grid>
