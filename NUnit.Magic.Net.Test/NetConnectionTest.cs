@@ -13,14 +13,12 @@ namespace NUnit.Magic.Net.Test
         public void NetConnection_ReceivedQueue_OnReceivedDataPackage_Ok()
         {
             IDataPackageHandler netCommandHandler = A.Fake<IDataPackageHandler>();
-            TestNetConnection connection =
-                A.Fake<TestNetConnection>(
-                    o => o.WithArgumentsForConstructor(new object[] {netCommandHandler}).CallsBaseMethods());
+            INetConnectionAdapter adapter = A.Fake<INetConnectionAdapter>();
+            TestNetConnection connection = new TestNetConnection(adapter, netCommandHandler);
+            A.CallTo(() => adapter.IsConnected).Returns(true);
 
             var package = new NetDataPackage(new byte[] {1, 1, 0, 0, 0});
             connection.AddAddToReceivedDataQueue(package);
-
-            A.CallTo(() => connection.IsConnected).Returns(true);
 
             connection.CallDequeueReceivedData();
 
@@ -30,7 +28,11 @@ namespace NUnit.Magic.Net.Test
         [Test]
         public void When_DataPackage_Type_Is_unknown()
         {
-            var connection = A.Fake<TestNetConnection>(o => o.CallsBaseMethods());
+            IDataPackageHandler netCommandHandler = A.Fake<IDataPackageHandler>();
+            INetConnectionAdapter adapter = A.Fake<INetConnectionAdapter>();
+            TestNetConnection connection = new TestNetConnection(adapter, netCommandHandler);
+            A.CallTo(() => adapter.IsConnected).Returns(true);
+
             var buffer = new NetDataPackage(new byte[] {1, 255, 0, 0, 0});
             connection.AddAddToReceivedDataQueue(buffer);
 

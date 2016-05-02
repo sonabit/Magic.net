@@ -5,26 +5,36 @@ using JetBrains.Annotations;
 
 namespace Magic.Net
 {
-    public abstract class NetConnectionAbstract : INetConnection
+    public class NetConnectionAbstract : INetConnection
     {
         private readonly ConcurrentQueue<NetDataPackage> _receivedDataQueue =
             new ConcurrentQueue<NetDataPackage>();
+       private readonly INetConnectionAdapter _connectionAdapter;
 
         private readonly AutoResetEvent _receivedDataResetEvent = new AutoResetEvent(false);
         private readonly IDataPackageDispatcher _dataPackageDispatcher;
 
-        protected NetConnectionAbstract(IDataPackageHandler netCommandHandler)
+        protected NetConnectionAbstract(INetConnectionAdapter connectionAdapter, 
+                          IDataPackageHandler netCommandHandler)
         {
+            _connectionAdapter = connectionAdapter;
             _dataPackageDispatcher = new DataPackageDispatcher(netCommandHandler);
         }
 
-        public abstract void Connect();
+        public void Connect()
+        {
+            _connectionAdapter.Connected();
+        }
 
-        public abstract bool IsConnected { get; }
+        public bool IsConnected
+        {
+            get { return _connectionAdapter.IsConnected; }
+        }
 
-        protected abstract NetDataPackage ReadData();
-
-        protected abstract void SendData(byte[] data);
+        protected void SendData(byte[] data)
+        {
+            _connectionAdapter.WriteData(data);
+        }
 
         public void Run(bool withNewThread = false)
         {
@@ -46,17 +56,17 @@ namespace Magic.Net
 
         private void ReadDataInternal()
         {
-            while (IsConnected)
+            while (_connectionAdapter.IsConnected)
             {
                 try
                 {
-                    var package = ReadData();
+                    NetDataPackage package = _connectionAdapter.ReadData();
                     if (package != null && package.Buffer.Length > 0)
                         AddToReceivedDataQueue(package);
                 }
                 catch (Exception)
                 {
-                    if (!IsConnected)
+                    if (!_connectionAdapter.IsConnected)
                         break;
                 }
             }
@@ -64,7 +74,7 @@ namespace Magic.Net
 
         private void ProcessingReceivedDataQueueInternal()
         {
-            while (IsConnected)
+            while (_connectionAdapter.IsConnected)
             {
                 try
                 {
@@ -100,6 +110,26 @@ namespace Magic.Net
             _receivedDataQueue.Enqueue(buffer);
             _receivedDataResetEvent.Set();
         }
-        
+
+        private void HandelReceivedData([NotNull] NetDataPackage package)
+        {
+            _dataPackageDispatcher.Handle(package);
+            //if (!ThreadPool.QueueUserWorkItem(HandelReceivedDataCallBack, package))
+            //    throw new Exception("Unexpected state, ThreadPool.QueueUserWorkItem() returns false!");
+        }
+    }
+
+    public interface INetConnectionPackageManager
+    {
+        void ReceivedData(NetDataPackage package);
+    }
+
+    public interface INetConnectionAdapter
+    {
+        bool IsConnected { get; }
+
+        void Connected();
+        NetDataPackage ReadData();
+        void WriteData(byte[] data);
     }
 }
