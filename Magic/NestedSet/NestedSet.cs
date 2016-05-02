@@ -11,24 +11,22 @@ namespace Magic
 {
     public sealed class NestedSet<T> : INotifyPropertyChanged,  IEnumerable<T> where T : class
     {
-        private readonly SortedSet<NestedSetItem<T>> _set;
-
-        public NestedSet()
-        {
-            _set = new SortedSet<NestedSetItem<T>>(NestedSetItem<T>.Comparer);
-        }
-
+        private readonly LinkedList<NestedSetItem<T>> _set = new LinkedList<NestedSetItem<T>>();
+        
         public T Root
         {
             get
             {
-                var first = _set.FirstOrDefault(i => i.Left == 1);
-                return first != null ? first.Value : null;
+                return _set.First.Value.Value;
             }
             set
             {
                 _set.Clear();
-                _set.Add(new NestedSetItem<T>(1, 2, value, _set));
+                LinkedListNode<NestedSetItem<T>> listNode = NestedSetItem<T>.Create(1, 2, value);
+                //    listNode = new LinkedListNode<NestedSetItem<T>>(null);
+                //NestedSetItem<T> item = new NestedSetItem<T>(1, 2, value, listNode);
+                //listNode.Value = item;
+                _set.AddFirst(listNode);
                 OnPropertyChanged();
                 OnPropertyChanged("RootItem");
             }
@@ -44,7 +42,10 @@ namespace Magic
 
         public NestedSetItem<T> RootItem
         {
-            get { return _set.FirstOrDefault(i => i.Left == 1); }
+            get
+            {
+                return _set.First.Value;
+            }
         }
 
         #region Implementation of IEnumerable

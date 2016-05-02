@@ -14,7 +14,7 @@ namespace FolderSize.ViewModels
     {
         private RelayCommand _refreshCommand;
         
-        private readonly NestedSet<FileEntryItem>  _dirTree = new NestedSet<FileEntryItem>();
+        private readonly NestedSet<FileEntryItem> _dirTree = new NestedSet<FileEntryItem>();
         private long _totalLength;
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
         
@@ -67,6 +67,7 @@ namespace FolderSize.ViewModels
 
         private void Refresh()
         {
+            _totalLength = 0;
             var drives = Directory.GetLogicalDrives();
             ScanEntry(drives[0]);
             //ScanEntry("C:\\Users\\Fake\\ownCloud");
