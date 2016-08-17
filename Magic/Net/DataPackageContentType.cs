@@ -5,7 +5,7 @@
     /// </summary>
     public enum DataPackageContentType : byte
     {
-        NetCommand = 0x1,
-        NetCommandStream = 0x10
+        NetCommand = 1,
+        NetCommandStream = 10
     }
 }

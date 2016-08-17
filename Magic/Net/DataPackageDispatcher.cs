@@ -36,7 +36,10 @@ namespace Magic.Net
             switch (package.PackageContentType)
             {
                 case DataPackageContentType.NetCommand:
-                    _netCommandHandle.Handel(package);
+                    _netCommandHandle.ReceiveCommand(package);
+                    break;
+                    case DataPackageContentType.NetCommandStream:
+                        _netCommandHandle.ReceiveCommandStream(package);
                     break;
                 default:
                     // this case should never happened
@@ -64,22 +67,22 @@ namespace Magic.Net
         }
     }
 
-    public interface IDataPackageHandler
-    {
-        void Handel([NotNull]NetDataPackage package);
-    }
-
-    public class NetCommandInvoker : IDataPackageHandler
+    public class DataPackageHandler : IDataPackageHandler
     {
         #region Implementation of IDataPackageHandler
 
-        public void Handel([NotNull]NetDataPackage package)
+        public void ReceiveCommand([NotNull]NetDataPackage package)
         {
             while (!ThreadPool.QueueUserWorkItem(HandelReceivedDataCallBack, package))
             {
                 Trace.WriteLine("ThreadPool.QueueUserWorkItem unsuccessful");
                 Thread.Sleep(50);
             }
+        }
+
+        public void ReceiveCommandStream([NotNull]NetDataPackage package)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion

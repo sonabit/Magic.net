@@ -1,11 +1,8 @@
-﻿using System;
-using System.Runtime.CompilerServices;
-using Magic.Net;
+﻿using Magic.Net;
 
 namespace NUnit.Magic.Net.Test.Helper
 {
-    
-    // ReSharper disable once ClassNeverInstantiated.Global
+
     public class TestNetConnection : NetConnectionAbstract
     {
         public TestNetConnection(INetConnectionAdapter connectionAdapter, IDataPackageHandler netCommandHandler) 
@@ -13,15 +10,14 @@ namespace NUnit.Magic.Net.Test.Helper
         {
         }
         
-        
         public void AddAddToReceivedDataQueue(NetDataPackage package)
         {
-            base.AddToReceivedDataQueue(package);
+            AddToReceivedDataQueue(package);
         }
 
         public void CallDequeueReceivedData()
         {
-            base.DequeueReceivedData();
+            DequeueReceivedData();
         }
     }
 }

@@ -62,6 +62,7 @@
     <Compile Include="Net\DataPackageContentType.cs" />
     <Compile Include="Net\DataPackageDispatcher.cs" />
     <Compile Include="Net\IDataPackageDispatcher.cs" />
+    <Compile Include="Net\IDataPackageHandler.cs" />
     <Compile Include="Net\INetConnection.cs" />
     <Compile Include="Net\NetCommandException.cs" />
     <Compile Include="Net\NetCommandExceptionReasonses.cs" />

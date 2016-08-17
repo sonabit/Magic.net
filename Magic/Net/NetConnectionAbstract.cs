@@ -23,7 +23,7 @@ namespace Magic.Net
 
         public void Connect()
         {
-            _connectionAdapter.Connected();
+            _connectionAdapter.Connect();
         }
 
         public bool IsConnected
@@ -119,16 +119,11 @@ namespace Magic.Net
         }
     }
 
-    public interface INetConnectionPackageManager
-    {
-        void ReceivedData(NetDataPackage package);
-    }
-
     public interface INetConnectionAdapter
     {
         bool IsConnected { get; }
 
-        void Connected();
+        void Connect();
         NetDataPackage ReadData();
         void WriteData(byte[] data);
     }

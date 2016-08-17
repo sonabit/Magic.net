@@ -9,47 +9,76 @@ namespace NUnit.Magic.Net.Test
     [TestFixture]
     public class NetConnectionTest
     {
-        [Test]
+        [Test, Category("receive data package")]
         public void NetConnection_ReceivedQueue_OnReceivedDataPackage_Ok()
         {
-            IDataPackageHandler netCommandHandler = A.Fake<IDataPackageHandler>();
+            IDataPackageHandler dataPackageHandler = A.Fake<IDataPackageHandler>();
             INetConnectionAdapter adapter = A.Fake<INetConnectionAdapter>();
-            TestNetConnection connection = new TestNetConnection(adapter, netCommandHandler);
+            TestNetConnection connection = new TestNetConnection(adapter, dataPackageHandler);
             A.CallTo(() => adapter.IsConnected).Returns(true);
 
-            var package = new NetDataPackage(new byte[] {1, 1, 0, 0, 0});
+            var package = new NetDataPackage(new byte[] { 1, 1, 0, 0, 0 });
             connection.AddAddToReceivedDataQueue(package);
 
             connection.CallDequeueReceivedData();
 
-            A.CallTo(() => netCommandHandler.Handel(package)).MustHaveHappened(Repeated.AtLeast.Once);
+            A.CallTo(() => dataPackageHandler.ReceiveCommand(package)).MustHaveHappened(Repeated.AtLeast.Once);
         }
 
-        [Test]
-        public void When_DataPackage_Type_Is_unknown()
+        [Test, Category("data package version")]
+        public void When_Version_Is_not_1()
         {
-            IDataPackageHandler netCommandHandler = A.Fake<IDataPackageHandler>();
-            INetConnectionAdapter adapter = A.Fake<INetConnectionAdapter>();
-            TestNetConnection connection = new TestNetConnection(adapter, netCommandHandler);
-            A.CallTo(() => adapter.IsConnected).Returns(true);
-
-            var buffer = new NetDataPackage(new byte[] {1, 255, 0, 0, 0});
+            var connection = A.Fake<TestNetConnection>(o => o.CallsBaseMethods());
+            var buffer = new NetDataPackage(new byte[] { 20, 1, 0, 0, 0 });
             connection.AddAddToReceivedDataQueue(buffer);
 
-            var exception = Assert.Throws<NetCommandException>(connection.CallDequeueReceivedData);
+            Assert.Throws<NotSupportedException>(connection.CallDequeueReceivedData);
+        }
+    }
+    
+    public class NetConnectionDataPackageTypeTests
+    {
+        private TestNetConnection _connection;
+        private IDataPackageHandler _dataPackageHandler;
+
+        [SetUp]
+        public void Init()
+        {
+            _dataPackageHandler = A.Fake<IDataPackageHandler>();
+            INetConnectionAdapter adapter = A.Fake<INetConnectionAdapter>();
+            _connection = new TestNetConnection(adapter, _dataPackageHandler);
+            A.CallTo(() => adapter.IsConnected).Returns(true);
+        }
+
+        [Test, Category("package type")]
+        public void When_DataPackage_Type_Is_unknown()
+        {
+            var buffer = new NetDataPackage(new byte[] { 1, 255, 0, 0, 0 });
+            _connection.AddAddToReceivedDataQueue(buffer);
+            var exception = Assert.Throws<NetCommandException>(_connection.CallDequeueReceivedData);
+
             Assert.NotNull(exception);
             Assert.AreEqual("package.PackageContentType 255 unknown.", exception.Message);
             Assert.AreEqual(NetCommandExceptionReasonses.UnknownPackageContentType, exception.Reasonses);
         }
 
-        [Test]
-        public void When_Version_Is_not_1()
+        [Test, Category("package type")]
+        public void When_DataPackage_Type_Is_1()
         {
-            var connection = A.Fake<TestNetConnection>(o => o.CallsBaseMethods());
-            var buffer = new NetDataPackage(new byte[] {20, 1, 0, 0, 0});
-            connection.AddAddToReceivedDataQueue(buffer);
+            var package = new NetDataPackage(new byte[] { 1, 1, 0, 0, 0 });
+            _connection.AddAddToReceivedDataQueue(package);
+            _connection.CallDequeueReceivedData();
+            A.CallTo(() => _dataPackageHandler.ReceiveCommand(package)).MustHaveHappened(Repeated.AtLeast.Once);
+        }
 
-            Assert.Throws<NotSupportedException>(connection.CallDequeueReceivedData);
+        [Test, Category("package type")]
+        public void When_DataPackage_Type_Is_10()
+        {
+            var package = new NetDataPackage(new byte[] { 1, 10, 0, 0, 0 });
+            _connection.AddAddToReceivedDataQueue(package);
+            _connection.CallDequeueReceivedData();
+
+            A.CallTo(() => _dataPackageHandler.ReceiveCommandStream(package)).MustHaveHappened(Repeated.AtLeast.Once);
         }
     }
 }
