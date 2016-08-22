@@ -7,15 +7,13 @@ namespace Magic.Net
 {
     public class NetConnectionAbstract : INetConnection
     {
-        private readonly ConcurrentQueue<NetDataPackage> _receivedDataQueue =
-            new ConcurrentQueue<NetDataPackage>();
-       private readonly INetConnectionAdapter _connectionAdapter;
+        private readonly ConcurrentQueue<NetDataPackage> _receivedDataQueue = new ConcurrentQueue<NetDataPackage>();
+        private readonly INetConnectionAdapter _connectionAdapter;
 
         private readonly AutoResetEvent _receivedDataResetEvent = new AutoResetEvent(false);
         private readonly IDataPackageDispatcher _dataPackageDispatcher;
 
-        protected NetConnectionAbstract(INetConnectionAdapter connectionAdapter, 
-                          IDataPackageHandler netCommandHandler)
+        protected NetConnectionAbstract(INetConnectionAdapter connectionAdapter, IDataPackageHandler netCommandHandler)
         {
             _connectionAdapter = connectionAdapter;
             _dataPackageDispatcher = new DataPackageDispatcher(netCommandHandler);
