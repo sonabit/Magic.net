@@ -63,7 +63,9 @@
     <Compile Include="Net\DataPackageDispatcher.cs" />
     <Compile Include="Net\IDataPackageDispatcher.cs" />
     <Compile Include="Net\IDataPackageHandler.cs" />
+    <Compile Include="Serialization\IMagicSerialization.cs" />
     <Compile Include="Net\INetConnection.cs" />
+    <Compile Include="Net\NetCommand.cs" />
     <Compile Include="Net\NetCommandException.cs" />
     <Compile Include="Net\NetCommandExceptionReasonses.cs" />
     <Compile Include="Net\NetDataPackage.cs" />

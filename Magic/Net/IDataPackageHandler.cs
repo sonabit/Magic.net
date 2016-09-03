@@ -4,7 +4,7 @@ namespace Magic.Net
 {
     public interface IDataPackageHandler
     {
-        void ReceiveCommand([NotNull]NetDataPackage package);
+        void ReceiveCommand([NotNull]NetCommand package);
 
         void ReceiveCommandStream([NotNull]NetDataPackage package);
     }

@@ -1,17 +1,27 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
+using System.Xml.Serialization;
 using JetBrains.Annotations;
+using Magic.Serialization;
+using Microsoft.SqlServer.Server;
 
 namespace Magic.Net
 {
-    internal sealed class DataPackageDispatcher : IDataPackageDispatcher
+    sealed class DataPackageDispatcher : IDataPackageDispatcher
     {
         private readonly IDataPackageHandler _netCommandHandle;
+        private readonly ISerializeFormatterCollection _formatterCollection;
+        private static readonly MagicSerializeFormatter MagicSerializeFormatter = new MagicSerializeFormatter();
 
         public DataPackageDispatcher(IDataPackageHandler netCommandHandle)
         {
             _netCommandHandle = netCommandHandle;
+            _formatterCollection = new DefaulSerializeFormatter();
         }
 
         #region Implementation of IDataPackageDispatcher
@@ -36,7 +46,9 @@ namespace Magic.Net
             switch (package.PackageContentType)
             {
                 case DataPackageContentType.NetCommand:
-                    _netCommandHandle.ReceiveCommand(package);
+                    //NetCommand command = _formatterCollection[package.SerializeFormat].Deserialize<NetCommand>(package.Buffer, 3);
+                    NetCommand command = MagicSerializeFormatter.Deserialize<NetCommand>(package.Buffer, 3);
+                    _netCommandHandle.ReceiveCommand(command);
                     break;
                     case DataPackageContentType.NetCommandStream:
                         _netCommandHandle.ReceiveCommandStream(package);
@@ -67,11 +79,12 @@ namespace Magic.Net
         }
     }
 
+    
     public class DataPackageHandler : IDataPackageHandler
     {
         #region Implementation of IDataPackageHandler
 
-        public void ReceiveCommand([NotNull]NetDataPackage package)
+        public void ReceiveCommand([NotNull]NetCommand package)
         {
             while (!ThreadPool.QueueUserWorkItem(HandelReceivedDataCallBack, package))
             {

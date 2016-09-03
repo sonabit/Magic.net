@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="Helper\TestNetConnection.cs" />
     <Compile Include="NetCommandPackageTests.cs" />
+    <Compile Include="NetConnectionDataPackageTypeTests.cs" />
     <Compile Include="NetConnectionTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -8,7 +8,9 @@ namespace Magic.Net
         {
             _buffer = buffer;
             if (_buffer.Length > 1)
-                PackageContentType = (DataPackageContentType)Buffer[1]; 
+                PackageContentType = (DataPackageContentType)Buffer[1];
+            if (_buffer.Length > 2)
+                SerializeFormat = (DataSerializeFormat)Buffer[2];
         }
 
         public byte[] Buffer
@@ -21,6 +23,8 @@ namespace Magic.Net
         public byte Version { get { return Buffer[0]; } }
 
         public DataPackageContentType PackageContentType { get; private set; }
-         
+
+        public DataSerializeFormat SerializeFormat { get; private set; }
+
     }
 }
