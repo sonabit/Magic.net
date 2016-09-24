@@ -16,10 +16,11 @@ using System.Windows.Markup;
 
 //[assembly: NeutralResourcesLanguage("en-US", UltimateResourceFallbackLocation.Satellite)]
 
-[assembly: XmlnsDefinition("http://schemas.rolbeh.de/magic/2015", "magic.Controls")]
-[assembly: XmlnsDefinition("http://schemas.rolbeh.de/magic/2015", "magic.Controls.Converter")]
-
 [assembly: XmlnsPrefix("http://schemas.rolbeh.de/magic/2015", "magic")]
+
+[assembly: XmlnsDefinition("http://schemas.rolbeh.de/magic/2015", "Magic.Controls")]
+[assembly: XmlnsDefinition("http://schemas.rolbeh.de/magic/2015", "Magic.Controls.Converter")]
+
 
 [assembly:ThemeInfo(
     ResourceDictionaryLocation.None,                       

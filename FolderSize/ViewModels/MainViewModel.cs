@@ -69,8 +69,10 @@ namespace FolderSize.ViewModels
         {
             _totalLength = 0;
             var drives = Directory.GetLogicalDrives();
-            ScanEntry(drives[0]);
+            //ScanEntry(drives[1]);
             //ScanEntry("C:\\Users\\Fake\\ownCloud");
+            ScanEntry("D:\\Games (x86)");
+
         }
 
         private void ScanEntry(string path)

@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace magic.Controls
+namespace Magic.Controls
 {
     public class MagCheckBox : System.Windows.Controls.CheckBox
     {

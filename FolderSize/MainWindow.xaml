@@ -8,8 +8,9 @@
         xmlns:system="clr-namespace:System;assembly=mscorlib"
         xmlns:componentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         xmlns:models="clr-namespace:FolderSize.Models"
-        xmlns:magic="clr-namespace:Magic;assembly=Magic"
+        xmlns:magic="http://schemas.rolbeh.de/magic/2015"
         xmlns:folderSize="clr-namespace:FolderSize"
+        xmlns:magicdata="clr-namespace:Magic;assembly=Magic"
         mc:Ignorable="d" d:DataContext="{d:DesignInstance Type=viewModels:MainViewModel}"
         Title="Sample Folder HeadMap" Height="350" Width="525">
     <FrameworkElement.Resources>
@@ -28,15 +29,47 @@
 
         <converter:ReadableFilesizeConverter x:Key="ReadableFilesizeConverter" />
 
-        <folderSize:ToListCollectionViewConverter x:Key="CollectionConverter"/>
+        <folderSize:ToListCollectionViewConverter x:Key="CollectionConverter" />
 
-        <HierarchicalDataTemplate x:Key="FileEntryItemDataTemplate" ItemsSource="{Binding Path=., Converter={StaticResource CollectionConverter}}" DataType="{x:Type magic:NestedSetItem}">
+        <HierarchicalDataTemplate x:Key="FileEntryItemDataTemplate"
+                                  ItemsSource="{Binding Path=., Converter={StaticResource CollectionConverter}}"
+                                  DataType="{x:Type magicdata:NestedSetItem}">
 
             <TextBlock DataContext="{Binding Path=Value}" d:DataContext="{d:DesignInstance Type=models:FileEntryItem}">
                 <Run Text="{Binding Path=DisplayText, Mode=OneWay}" />
-                <Run Text="{Binding Path=TotalFileSize, Mode=OneWay, Converter={StaticResource ReadableFilesizeConverter}}" />
+                <Run
+                    Text="{Binding Path=TotalFileSize, Mode=OneWay, Converter={StaticResource ReadableFilesizeConverter}}" />
             </TextBlock>
         </HierarchicalDataTemplate>
+
+        <DataTemplate x:Key="DiskItemDataTemplate"
+                      DataType="{x:Type magicdata:NestedSetItem}">
+            <Border BorderThickness="2" BorderBrush="Blue">
+                <Grid>
+                    <Viewbox Stretch="Fill">
+                        <Grid>
+                            <TextBlock Text="{Binding Path=.}" />
+                        </Grid>
+                    </Viewbox>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate x:Key="GeographicAreaDataTemplate">
+            <Border BorderThickness="2" BorderBrush="Blue">
+                <Grid>
+                    <Viewbox Stretch="Fill">
+                        <Grid>
+                            <!--<Image Source="{Binding Path=Image}" Width="128" Height="128" Stretch="Fill"/>-->
+                            <StackPanel Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <!--<TextBlock  TextWrapping="Wrap" Text="{Binding Path=Name}"/>-->
+                                <TextBlock Text="{Binding Path=Value.TotalFileSize, StringFormat={}{0}bytes}" />
+                            </StackPanel>
+                        </Grid>
+                    </Viewbox>
+                </Grid>
+            </Border>
+        </DataTemplate>
 
     </FrameworkElement.Resources>
     <Grid>
@@ -64,14 +97,48 @@
         </Button>
         <Border Grid.Row="1" BorderBrush="Black" BorderThickness="1" Margin="10">
             <Grid>
-                
-        <TreeView x:Name="TreeView" Grid.Row="1" ItemsSource="{Binding Path=DirTree.RootItem}"
-                  Margin="10"
-                  ItemTemplate="{StaticResource FileEntryItemDataTemplate}"
-                  VirtualizingStackPanel.IsVirtualizing="True"
-                  VirtualizingStackPanel.VirtualizationMode="Recycling" />
-        
-        <!--<ItemsControl x:Name="ItemsControl" ItemsSource="{Binding Path=Dirs}" Background="BlanchedAlmond"
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="47*" />
+                    <ColumnDefinition Width="52*" />
+                </Grid.ColumnDefinitions>
+
+                <TreeView x:Name="TreeView" ItemsSource="{Binding Path=DirTree.RootItem}"
+                          Margin="10,10,0,10"
+                          ItemTemplate="{StaticResource FileEntryItemDataTemplate}"
+                          VirtualizingStackPanel.IsVirtualizing="True"
+                          VirtualizingStackPanel.VirtualizationMode="Recycling" />
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <magic:TreeMaps Grid.Row="0" Margin="10"
+                                    ItemsSource="{Binding Path=DirTree.RootItem}"
+                                    ValuePropertyName="Value.TotalFileSize"
+                                    ItemTemplate="{StaticResource GeographicAreaDataTemplate}"
+                                    MaxDepth="1"
+                                    MinArea="64"
+                                    TreeMapMode="Squarified" />
+                    <magic:TreeMaps Grid.Row="1"
+                                    x:Name="_tree"
+                                    ItemTemplate="{StaticResource GeographicAreaDataTemplate}"
+                                    ValuePropertyName="Value.TotalFileSize"
+                                    TreeMapMode="Squarified">
+                        <folderSize:GeographicArea>
+                            <folderSize:GeographicArea.Value>
+                                <folderSize:MyClass TotalFileSize="28" />
+                            </folderSize:GeographicArea.Value>
+                        </folderSize:GeographicArea>
+                        <folderSize:GeographicArea>
+                            <folderSize:GeographicArea.Value>
+                                <folderSize:MyClass TotalFileSize="58" />
+                            </folderSize:GeographicArea.Value>
+                        </folderSize:GeographicArea>
+                    </magic:TreeMaps>
+
+                </Grid>
+                <!--<ItemsControl x:Name="ItemsControl" ItemsSource="{Binding Path=Dirs}" Background="BlanchedAlmond"
                       Margin="10"  >
             <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type models:FileEntryItem}" >

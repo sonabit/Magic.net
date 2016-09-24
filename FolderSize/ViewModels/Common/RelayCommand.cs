@@ -6,10 +6,11 @@ using System.Windows.Input;
 namespace FolderSize.ViewModels
 {
     [DebuggerStepThrough]
-    internal class RelayCommand : ICommand
+    internal sealed class RelayCommand : ICommand
     {
         private readonly Func<object, bool> _onCanExcute;
         private readonly Action<object> _onExecute;
+        private bool _lastCanExecute;
 
         public RelayCommand(Action<object> onExecute)
         {
@@ -24,8 +25,8 @@ namespace FolderSize.ViewModels
         
         public RelayCommand(Func<Task> onExecute)
         {
-            var action = onExecute;
-            _onExecute = (o) => action();
+            Func<Task> action = onExecute;
+            _onExecute = o => action();
         }
 
         public RelayCommand(Func<object, bool> onCanExcute, Action<object> onExecute)
@@ -36,14 +37,19 @@ namespace FolderSize.ViewModels
 
         public bool CanExecute(object parameter)
         {
-            return _onCanExcute == null || _onCanExcute(parameter);
+            var result = _onCanExcute == null || _onCanExcute(parameter);
+            if (_lastCanExecute == result)
+                return result;
+            _lastCanExecute = result;
+            CanExecuteChanged?.Invoke(this, new EventArgs());
+            return result;
         }
 
         [DebuggerStepThrough]
         public void Execute(object parameter)
         {
-            if (_onExecute != null) 
-                _onExecute.Invoke(parameter);
+            if (CanExecute((parameter)))
+                _onExecute?.Invoke(parameter);
         }
 
         /// <summary>

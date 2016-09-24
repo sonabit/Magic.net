@@ -59,10 +59,10 @@ namespace NetConnectionSample
             if (_isEnabled) return;
 
             if (_uri.Port > 0)
-                _connectionAdapter = new NetConnectionIpAdapter(_uri);
+                _connectionAdapter = new NetConnectionIpAdapter(_uri.Port);
             if (_connectionAdapter != null)
             {
-                _connectionAdapter.Connected();
+                _connectionAdapter.Connect();
                 return;
             }
             throw new NotSupportedException();
@@ -74,12 +74,12 @@ namespace NetConnectionSample
         public NetConnectionIpAdapter(int port)
         {
             System.Net.Sockets.TcpListener listener = new TcpListener(new IPEndPoint(IPAddress.Any, port));
-            listener.AcceptTcpClientAsync()
+            listener.AcceptTcpClientAsync();
         }
 
         public bool IsConnected { get; }
 
-        public void Connected()
+        public void Connect()
         {
             throw new NotImplementedException();
         }

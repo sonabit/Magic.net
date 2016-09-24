@@ -50,6 +50,7 @@ namespace FolderSize
             //var cvs = FindResource("cvs") as CollectionViewSource;
             //if (cvs != null)
             //    cvs.Source = _viewModel.DirTree;
+            
         }
 
         private void OnPropertyChanged(object sender, PropertyChangedEventArgs propertyChangedEventArgs)
@@ -67,5 +68,45 @@ namespace FolderSize
             if (cvs != null)
                 cvs.Source = _viewModel.DirTree.RootItem.OrderByDescending(i => i.Value.TotalFileSize).ToArray();
         }
+    }
+
+    class GeographicArea
+    {
+        private ImageSource _image;
+        private double _sales;
+        private string _name;
+
+        public GeographicArea()
+        {
+            
+        }
+
+        public GeographicArea(string name, string imagePath, double sales)
+        {
+            _name = name;
+            _image = new BitmapImage(new Uri(imagePath, UriKind.RelativeOrAbsolute));
+            _sales = sales;
+        }
+
+        public string Name
+        {
+            get { return _name; }
+            set { _name = value; }
+        }
+
+        public ImageSource Image
+        {
+            get { return _image; }
+            set { _image = value; }
+        }
+
+        public MyClass Value { get; set; }
+
+    }
+
+    class MyClass
+    {
+
+        public int TotalFileSize { get; set; } 
     }
 }

@@ -57,9 +57,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Converter\ReadableFilesizeConverter.cs" />
+    <Compile Include="HeatMapView.cs" />
+    <Compile Include="HeatMapViewItem.cs" />
     <Compile Include="ObjectNotify.cs" />
     <Compile Include="MagCheckBox.cs" />
     <Compile Include="Properties\Annotations.cs" />
+    <Compile Include="TreeMaps\SquarifiedTreeMapsPanel.cs" />
+    <Compile Include="TreeMaps\TreeMapItem.cs" />
+    <Compile Include="TreeMaps\TreeMaps.cs" />
+    <Compile Include="TreeMaps\TreeMapsPanel.cs" />
+    <Compile Include="TreeMaps\ValueDataTemplate.cs" />
     <Page Include="Themes\Generic.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
