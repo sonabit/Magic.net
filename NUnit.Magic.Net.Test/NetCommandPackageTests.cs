@@ -13,7 +13,8 @@ namespace NUnit.Magic.Net.Test
             NetDataPackage package = new NetDataPackage(bytes);
             Assert.AreEqual(2, package.Version);
             Assert.AreEqual(DataPackageContentType.NetCommand, package.PackageContentType);
-            Assert.AreEqual(bytes, package.Buffer);
+            Assert.AreEqual(2, package.Buffer.Count);
+            Assert.AreEqual(bytes, package.Buffer.Array);
         }
     }
 }

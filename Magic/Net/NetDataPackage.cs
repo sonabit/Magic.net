@@ -37,6 +37,8 @@ namespace Magic.Net
 
     class NetDataPackageHeader
     {
+        private readonly int _byteLength;
+
         public NetDataPackageHeader(byte[] buffer)
         {
             int len = 0;
@@ -56,10 +58,13 @@ namespace Magic.Net
                 SerializeFormat = (DataSerializeFormat)buffer[2];
                 len++;
             }
-            ByteLength = len;
+            _byteLength = len;
         }
 
-        internal int ByteLength { get; }
+        internal int ByteLength
+        {
+            get { return _byteLength; }
+        }
 
         public byte Version { get; private set; }
 

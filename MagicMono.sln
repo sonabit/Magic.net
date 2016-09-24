@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{B7B518A8-1A14-45F7-B3EB-B613E3327CB8}"
 EndProject
@@ -17,6 +17,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{C76A05
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NUnit.Magic.Net.Test", "NUnit.Magic.Net.Test\NUnit.Magic.Net.Test.csproj", "{A97FFB8B-C4B1-4D24-87A1-C69A2A188139}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Magic.Net.Node.Sample", "Magic.Net.Node.Sample\Magic.Net.Node.Sample.csproj", "{30DF28D7-799D-449E-B329-51F167054D4A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,6 +45,12 @@ Global
 		{A97FFB8B-C4B1-4D24-87A1-C69A2A188139}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A97FFB8B-C4B1-4D24-87A1-C69A2A188139}.RemoteDebug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A97FFB8B-C4B1-4D24-87A1-C69A2A188139}.RemoteDebug|Any CPU.Build.0 = Debug|Any CPU
+		{30DF28D7-799D-449E-B329-51F167054D4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30DF28D7-799D-449E-B329-51F167054D4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30DF28D7-799D-449E-B329-51F167054D4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30DF28D7-799D-449E-B329-51F167054D4A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30DF28D7-799D-449E-B329-51F167054D4A}.RemoteDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30DF28D7-799D-449E-B329-51F167054D4A}.RemoteDebug|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -50,5 +58,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{CA928FF9-080B-4741-9C75-C67E4D7CF2AA} = {B7B518A8-1A14-45F7-B3EB-B613E3327CB8}
 		{A97FFB8B-C4B1-4D24-87A1-C69A2A188139} = {B7B518A8-1A14-45F7-B3EB-B613E3327CB8}
+		{30DF28D7-799D-449E-B329-51F167054D4A} = {A0D1C58C-FDA8-48C8-AEAF-B0EE96CFD7F7}
 	EndGlobalSection
 EndGlobal
