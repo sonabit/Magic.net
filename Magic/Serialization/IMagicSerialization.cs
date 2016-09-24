@@ -37,8 +37,9 @@ namespace Magic.Serialization
             IMagicSerialization magicSerialization = result as IMagicSerialization;
             if (magicSerialization == null)
                 throw new SerializationException(
-                    string.Format("The type {0} does not support the interface {1}", typeof(TResult).Name,
-                        typeof(IMagicSerialization).Name));
+                    string.Format("The type {0} does not support the interface {1}",
+                        /*0*/ typeof(TResult).Name,
+                        /*1*/ typeof(IMagicSerialization).Name));
             using (MemoryStream mStream = new MemoryStream(bytes, false))
             {
                 mStream.Seek(startPosition, SeekOrigin.Begin);
@@ -65,9 +66,10 @@ namespace Magic.Serialization
         #endregion
     }
 
-    sealed class DefaulSerializeFormatter : ISerializeFormatterCollection
+    internal sealed class DefaulSerializeFormatter : ISerializeFormatterCollection
     {
-        Dictionary<DataSerializeFormat, ISerializeFormatter> _formatters = new Dictionary<DataSerializeFormat, ISerializeFormatter>();
+        private readonly Dictionary<DataSerializeFormat, ISerializeFormatter> _formatters =
+            new Dictionary<DataSerializeFormat, ISerializeFormatter>();
 
         public DefaulSerializeFormatter()
         {
@@ -83,7 +85,7 @@ namespace Magic.Serialization
     }
 
     internal class GFormatter<TFormatter> : ISerializeFormatter
-         where TFormatter : IFormatter, new()
+        where TFormatter : IFormatter, new()
     {
         private readonly Dictionary<Type, IFormatter> _serializers = new Dictionary<Type, IFormatter>();
 
@@ -95,10 +97,10 @@ namespace Magic.Serialization
                 serializer = new TFormatter();
                 _serializers[typeof(TResult)] = serializer;
             }
-            using (var stream = new MemoryStream(bytes, false))
+            using (MemoryStream stream = new MemoryStream(bytes, false))
             {
                 stream.Position = startPosition;
-                return (TResult)serializer.Deserialize(stream);
+                return (TResult) serializer.Deserialize(stream);
             }
         }
 
@@ -110,7 +112,7 @@ namespace Magic.Serialization
                 serializer = new TFormatter();
                 _serializers[typeof(T)] = serializer;
             }
-            using (var stream = new MemoryStream())
+            using (MemoryStream stream = new MemoryStream())
             {
                 serializer.Serialize(stream, value);
                 return stream.ToArray();
@@ -120,7 +122,7 @@ namespace Magic.Serialization
 
     internal class XmlFormatter : ISerializeFormatter
     {
-        readonly Dictionary<Type, XmlSerializer> _serializers = new Dictionary<Type, XmlSerializer>();
+        private readonly Dictionary<Type, XmlSerializer> _serializers = new Dictionary<Type, XmlSerializer>();
 
         public TResult Deserialize<TResult>(byte[] bytes, long startPosition)
         {
@@ -130,10 +132,10 @@ namespace Magic.Serialization
                 serializer = new XmlSerializer(typeof(TResult));
                 _serializers[typeof(TResult)] = serializer;
             }
-            using (var stream = new MemoryStream(bytes, false))
+            using (MemoryStream stream = new MemoryStream(bytes, false))
             {
                 stream.Position = startPosition;
-                return (TResult)serializer.Deserialize(stream);
+                return (TResult) serializer.Deserialize(stream);
             }
         }
 
@@ -145,7 +147,7 @@ namespace Magic.Serialization
                 serializer = new XmlSerializer(typeof(T));
                 _serializers[typeof(T)] = serializer;
             }
-            using (var stream = new MemoryStream())
+            using (MemoryStream stream = new MemoryStream())
             {
                 serializer.Serialize(stream, value);
                 return stream.ToArray();

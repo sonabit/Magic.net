@@ -37,7 +37,7 @@ namespace NUnit.Magic.Net.Test
 
             connection.CallDequeueReceivedData();
 
-            A.CallTo(() => dataPackageHandler.ReceiveCommand(A<NetCommand>.Ignored)).MustHaveHappened(Repeated.AtLeast.Once);
+            A.CallTo(() => dataPackageHandler.ReceiveCommand(A<NetCommand>.Ignored)).MustHaveHappened(Repeated.Exactly.Once);
         }
 
         [Test, Category("data package version")]

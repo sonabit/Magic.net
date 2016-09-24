@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using JetBrains.Annotations;
 
@@ -34,11 +36,12 @@ namespace Magic.Net
             _connectionAdapter.WriteData(data);
         }
 
+        [ExcludeFromCodeCoverage]
         public void Run(bool withNewThread = false)
         {
             if (withNewThread)
             {
-                new Thread(RunInternal).Start();
+                new Thread(RunInternal){IsBackground = true}.Start();
             }
             else
             {
@@ -46,6 +49,7 @@ namespace Magic.Net
             }
         }
 
+        [ExcludeFromCodeCoverage]
         private void RunInternal()
         {
             new Thread(ProcessingReceivedDataQueueInternal) {IsBackground = true}.Start();
@@ -59,7 +63,7 @@ namespace Magic.Net
                 try
                 {
                     NetDataPackage package = _connectionAdapter.ReadData();
-                    if (package != null && package.Buffer.Length > 0)
+                    if (package != null && package.Buffer.ToArray().Length > 0)
                         AddToReceivedDataQueue(package);
                 }
                 catch (Exception)

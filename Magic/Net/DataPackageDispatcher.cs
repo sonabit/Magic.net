@@ -47,7 +47,7 @@ namespace Magic.Net
             {
                 case DataPackageContentType.NetCommand:
                     //NetCommand command = _formatterCollection[package.SerializeFormat].Deserialize<NetCommand>(package.Buffer, 3);
-                    NetCommand command = MagicSerializeFormatter.Deserialize<NetCommand>(package.Buffer, 3);
+                    NetCommand command = MagicSerializeFormatter.Deserialize<NetCommand>(package.Buffer.Array, package.Buffer.Offset);
                     _netCommandHandle.ReceiveCommand(command);
                     break;
                     case DataPackageContentType.NetCommandStream:
