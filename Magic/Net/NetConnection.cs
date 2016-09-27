@@ -7,23 +7,31 @@ using JetBrains.Annotations;
 
 namespace Magic.Net
 {
-    public class NetConnectionAbstract : INetConnection
+    public class NetConnection : INetConnection
     {
-        private readonly ConcurrentQueue<NetDataPackage> _receivedDataQueue = new ConcurrentQueue<NetDataPackage>();
         private readonly INetConnectionAdapter _connectionAdapter;
+        private readonly IDataPackageDispatcher _dataPackageDispatcher;
+        private readonly ConcurrentQueue<NetDataPackage> _receivedDataQueue = new ConcurrentQueue<NetDataPackage>();
 
         private readonly AutoResetEvent _receivedDataResetEvent = new AutoResetEvent(false);
-        private readonly IDataPackageDispatcher _dataPackageDispatcher;
 
-        protected NetConnectionAbstract(INetConnectionAdapter connectionAdapter, IDataPackageHandler netCommandHandler)
+        protected NetConnection(INetConnectionAdapter connectionAdapter, IDataPackageHandler dataPackageHandler)
         {
             _connectionAdapter = connectionAdapter;
-            _dataPackageDispatcher = new DataPackageDispatcher(netCommandHandler);
+            _dataPackageDispatcher = new DataPackageDispatcher(dataPackageHandler);
         }
 
-        public void Connect()
+        public event Action<INetConnection> Disconnected;
+
+        public void Open()
         {
-            _connectionAdapter.Connect();
+            _connectionAdapter.Open(true);
+        }
+
+        public void Close()
+        {
+            _connectionAdapter.Close();
+            OnDisconnected();
         }
 
         public bool IsConnected
@@ -31,9 +39,15 @@ namespace Magic.Net
             get { return _connectionAdapter.IsConnected; }
         }
 
+        public Uri Address
+        {
+            get { return _connectionAdapter.Address; }
+        }
+
         protected void SendData(byte[] data)
         {
-            _connectionAdapter.WriteData(data);
+            var segmensts = new[] {new ArraySegment<byte>(data)};
+            _connectionAdapter.WriteData(segmensts);
         }
 
         [ExcludeFromCodeCoverage]
@@ -41,7 +55,7 @@ namespace Magic.Net
         {
             if (withNewThread)
             {
-                new Thread(RunInternal){IsBackground = true}.Start();
+                new Thread(RunInternal) {IsBackground = true}.Start();
             }
             else
             {
@@ -62,7 +76,7 @@ namespace Magic.Net
             {
                 try
                 {
-                    NetDataPackage package = _connectionAdapter.ReadData();
+                    var package = _connectionAdapter.ReadData();
                     if (package != null && package.Buffer.ToArray().Length > 0)
                         AddToReceivedDataQueue(package);
                 }
@@ -119,14 +133,16 @@ namespace Magic.Net
             //if (!ThreadPool.QueueUserWorkItem(HandelReceivedDataCallBack, package))
             //    throw new Exception("Unexpected state, ThreadPool.QueueUserWorkItem() returns false!");
         }
+
+        private void OnDisconnected()
+        {
+            var handler = Disconnected;
+            if (handler != null) handler(this);
+        }
     }
 
-    public interface INetConnectionAdapter
+    public interface INetConnectionSettings
     {
-        bool IsConnected { get; }
-
-        void Connect();
-        NetDataPackage ReadData();
-        void WriteData(byte[] data);
+        Uri Uri { get; }
     }
 }

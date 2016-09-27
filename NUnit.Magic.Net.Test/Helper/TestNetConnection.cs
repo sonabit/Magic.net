@@ -3,10 +3,10 @@
 namespace NUnit.Magic.Net.Test.Helper
 {
 
-    public class TestNetConnection : NetConnectionAbstract
+    public class TestNetConnection : NetConnection
     {
-        public TestNetConnection(INetConnectionAdapter connectionAdapter, IDataPackageHandler netCommandHandler) 
-            : base(connectionAdapter, netCommandHandler)
+        public TestNetConnection(INetConnectionAdapter connectionAdapter, IDataPackageHandler dataPackageHandler) 
+            : base(connectionAdapter, dataPackageHandler)
         {
         }
         
