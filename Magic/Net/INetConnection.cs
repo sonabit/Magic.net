@@ -6,13 +6,14 @@ namespace Magic.Net
     {
         bool IsConnected { get; }
 
-        Uri Address { get; }
+        Uri RemoteAddress { get; }
 
         void Open();
 
         void Close();
-
-
+        
         event Action<INetConnection> Disconnected;
+        
+        void Send(params byte[][] bytes);
     }
 }

@@ -46,6 +46,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -61,13 +62,21 @@
     <Compile Include="NestedSet\NestedSetItem.cs" />
     <Compile Include="Net\DataPackageContentType.cs" />
     <Compile Include="Net\DataPackageDispatcher.cs" />
+    <Compile Include="Net\DataPackageHandler.cs" />
+    <Compile Include="Net\Extensions\BitConverterExtension.cs" />
+    <Compile Include="Net\Extensions\LambdaExpressionExtension.cs" />
+    <Compile Include="Net\Helper\UriExtension.cs" />
     <Compile Include="Net\IDataPackageDispatcher.cs" />
     <Compile Include="Net\IDataPackageHandler.cs" />
+    <Compile Include="Net\INetCommand.cs" />
     <Compile Include="Net\INetConnectionAdapter.cs" />
+    <Compile Include="Net\ISystem.cs" />
+    <Compile Include="Net\NamedPipeAdapter.cs" />
+    <Compile Include="Net\NamedPipeClientStreamAdapter.cs" />
+    <Compile Include="Net\NamedPipeNetConnection.cs" />
     <Compile Include="Net\NodeSystem.cs" />
-    <Compile Include="Net\Server\IBufferManager.cs" />
     <Compile Include="Net\Server\NamedPipeServerNetConnection.cs" />
-    <Compile Include="Net\Server\ReadWriteStreamAdapter.cs" />
+    <Compile Include="Net\ReadWriteStreamAdapter.cs" />
     <Compile Include="Net\Server\PipeSettings.cs" />
     <Compile Include="Serialization\IMagicSerialization.cs" />
     <Compile Include="Net\INetConnection.cs" />
@@ -83,6 +92,7 @@
     <Compile Include="Extensions\System\Security\MagCryptographyExtension.cs" />
     <Compile Include="Extensions\System\Threading\Tasks\TaskHelper.cs" />
     <Compile Include="Extensions\System\Threading\Tasks\UiTask.cs" />
+    <Compile Include="Serialization\MagicSerializationExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\magic.snk">

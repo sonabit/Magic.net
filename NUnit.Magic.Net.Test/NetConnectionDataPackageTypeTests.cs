@@ -37,7 +37,7 @@ namespace NUnit.Magic.Net.Test
             var package = new NetDataPackage(new byte[] { 1, 1, 0, 0, 0 });
             _connection.AddAddToReceivedDataQueue(package);
             _connection.CallDequeueReceivedData();
-            A.CallTo(() => _dataPackageHandler.ReceiveCommand(A<NetCommand>.Ignored)).MustHaveHappened(Repeated.AtLeast.Once);
+            A.CallTo(() => _dataPackageHandler.ReceiveCommand(A<NetDataPackage>.Ignored)).MustHaveHappened(Repeated.AtLeast.Once);
         }
 
         [Test, Category("package type")]

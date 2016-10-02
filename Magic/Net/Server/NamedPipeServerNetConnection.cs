@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
+using System.ServiceModel.Channels;
 using System.Threading;
 using JetBrains.Annotations;
 
@@ -22,13 +23,15 @@ namespace Magic.Net.Server
         private readonly List<INetConnection> _connectionHosts = new List<INetConnection>();
 
 
+        public event EventHandler<INetConnection> ConnectionAccepted;
+
         public NamedPipeServerNetConnection([NotNull]PipeSettings settings, ISystem nodeSystem)
         {
             _settings = settings;
             _nodeSystem = nodeSystem;
         }
 
-        public Uri Address
+        public Uri RemoteAddress
         {
             get { return _settings.Uri; }
         }
@@ -36,6 +39,7 @@ namespace Magic.Net.Server
         #region Implementation of INetConnectionAdapter
 
         public bool IsConnected { get { return !_closeEvent.IsSet; } }
+
         public void Open()
         {
             if (IsConnected)
@@ -51,6 +55,11 @@ namespace Magic.Net.Server
         }
 
         public event Action<INetConnection> Disconnected;
+
+        public void Send(params byte[][] bytes)
+        {
+            throw new NotSupportedException("This instance is a listener.");
+        }
 
         private void OpenInternal(bool withOwnThread)
         {
@@ -133,11 +142,9 @@ namespace Magic.Net.Server
                 return;
             }
 
-            ReadWriteStreamAdapter adapter = new NamedPipeAdapter(stream, _nodeSystem.BufferManager)
-            {
-                //ReleaseDataAfterSend = true,
-            };
-            INetConnection connection = new StreamNetConnection(adapter, _nodeSystem.PackageHandler);
+            ReadWriteStreamAdapter adapter = new NamedPipeClientHostAdapter(stream, _nodeSystem.BufferManager);
+
+            NetConnection connection = new NetConnection(adapter, _nodeSystem.PackageHandler, _nodeSystem.BufferManager);
 
             Trace.WriteLine("NetCommandPipeServer: new StreamNetConnection");
 
@@ -146,8 +153,9 @@ namespace Magic.Net.Server
             {
                 _connectionHosts.Add(connection);
             }
-            connection.Open();
+            connection.BeginRead(true);
 
+            OnConnectionAccepted(connection);
         }
         private void HostOnDisconnected(INetConnection sender)
         {
@@ -201,13 +209,20 @@ namespace Magic.Net.Server
             var handler = Disconnected;
             if (handler != null) handler(this);
         }
+
+        private void OnConnectionAccepted(INetConnection connection)
+        {
+            var handler = ConnectionAccepted;
+            if (handler != null) handler(this, connection);
+        }
     }
 
-    internal sealed class NamedPipeAdapter : ReadWriteStreamAdapter
+    sealed class NamedPipeClientHostAdapter : NamedPipeAdapter
     {
+        [NotNull]
         private readonly NamedPipeServerStream _stream;
 
-        public NamedPipeAdapter([NotNull] NamedPipeServerStream stream, [NotNull] IBufferManager bufferManager) 
+        internal NamedPipeClientHostAdapter([NotNull] NamedPipeServerStream stream, [NotNull] BufferManager bufferManager) 
             : base(stream, bufferManager)
         {
             _stream = stream;
@@ -215,19 +230,17 @@ namespace Magic.Net.Server
 
         #region Overrides of ReadWriteStreamAdapter
 
-        public override bool IsConnected
+        public sealed override void Open()
         {
-            get { return _stream.IsConnected; }
+            throw new NotSupportedException();
         }
-
+        public override void Close()
+        {
+            _stream.Disconnect();
+            base.Close();
+        }
+        
         #endregion
     }
 
-    internal sealed class StreamNetConnection : NetConnection
-    {
-        internal StreamNetConnection(INetConnectionAdapter connectionAdapter, IDataPackageHandler dataPackageHandler) : 
-            base(connectionAdapter, dataPackageHandler)
-        {
-        }
-    }
 }

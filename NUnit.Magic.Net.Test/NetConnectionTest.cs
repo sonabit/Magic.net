@@ -1,7 +1,10 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime.Serialization.Formatters.Binary;
 using FakeItEasy;
+using FakeItEasy.ExtensionSyntax.Full;
 using Magic.Net;
 using NUnit.Framework;
 using NUnit.Magic.Net.Test.Helper;
@@ -28,7 +31,7 @@ namespace NUnit.Magic.Net.Test
                 bw.Write((byte)1);
                 bw.Write((byte)DataSerializeFormat.MsBinary);
 
-                bformatter.Serialize(stream, new NetCommand());
+                bformatter.Serialize(stream, new NetCommand(this.GetType(), null, new ParameterInfo[0], new object[0]));
                 buffer = stream.ToArray();
             }
             
@@ -37,7 +40,7 @@ namespace NUnit.Magic.Net.Test
 
             connection.CallDequeueReceivedData();
 
-            A.CallTo(() => dataPackageHandler.ReceiveCommand(A<NetCommand>.Ignored)).MustHaveHappened(Repeated.Exactly.Once);
+            A.CallTo(() => dataPackageHandler.ReceiveCommand(A<NetDataPackage>.Ignored)).MustHaveHappened(Repeated.Exactly.Once);
         }
 
         [Test, Category("data package version")]
@@ -49,11 +52,5 @@ namespace NUnit.Magic.Net.Test
 
             Assert.Throws<NotSupportedException>(connection.CallDequeueReceivedData);
         }
-    }
-
-    [TestFixture]
-    public class CommandTest
-    {
-        
     }
 }

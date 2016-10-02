@@ -7,8 +7,8 @@
     <ProjectGuid>{30DF28D7-799D-449E-B329-51F167054D4A}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Magic.Net.Node.Sample</RootNamespace>
-    <AssemblyName>Magic.Net.Node.Sample</AssemblyName>
+    <RootNamespace>Magic.Net.Sample.Node.Server</RootNamespace>
+    <AssemblyName>Magic.Net.Sample.Node.Server</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -33,7 +33,13 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>Magic.Net.Sample.Node.Server.ProgramServer</StartupObject>
+  </PropertyGroup>
   <ItemGroup>
+    <Reference Include="JetBrains.Annotations">
+      <HintPath>..\..\packages\JetBrains.Annotations.10.0.0\lib\net20\JetBrains.Annotations.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -44,16 +50,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
+    <Compile Include="MyDataServiceImpl.cs" />
+    <Compile Include="ProgramServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ServiceCollection.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Magic\Magic.csproj">
+    <ProjectReference Include="..\..\Magic\Magic.csproj">
       <Project>{D835B407-6ED1-402D-B34D-8F46A81A5DDD}</Project>
       <Name>Magic</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Magic.Net.Sample.Node.Helper\Magic.Net.Sample.Node.Helper.csproj">
+      <Project>{3B518A73-1C44-44D3-BB45-84A29E0C49B3}</Project>
+      <Name>Magic.Net.Sample.Node.Helper</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

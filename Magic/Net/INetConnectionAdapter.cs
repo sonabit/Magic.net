@@ -6,15 +6,17 @@ namespace Magic.Net
     public interface INetConnectionAdapter : IDisposable
     {
         bool IsConnected { get; }
-        Uri Address { get; }
+        Uri RemoteAddress { get; }
 
-        void Open(bool withOwnThread);
+        //void Open(bool withOwnThread);
 
         void Close();
         
         NetDataPackage ReadData();
 
-        void WriteData(IEnumerable<ArraySegment<byte>> buffers);
+        void WriteData(params ArraySegment<byte>[] buffers);
+
+        void Open();
     }
     
 }

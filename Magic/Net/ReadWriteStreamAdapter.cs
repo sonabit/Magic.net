@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
+using System.Linq;
+using System.ServiceModel.Channels;
 using JetBrains.Annotations;
 
-namespace Magic.Net.Server
+namespace Magic.Net
 {
     internal abstract class ReadWriteStreamAdapter :  INetConnectionAdapter
     {
@@ -13,11 +15,11 @@ namespace Magic.Net.Server
 
         private bool disposedValue = false; // Dient zur Erkennung redundanter Aufrufe.
         private readonly Stream _stream;
-        private readonly IBufferManager _bufferManager;
+        private readonly BufferManager _bufferManager;
 
         #endregion Fields
 
-        public ReadWriteStreamAdapter([NotNull]Stream stream,[NotNull] IBufferManager bufferManager)
+        protected ReadWriteStreamAdapter([NotNull]Stream stream,[NotNull] BufferManager bufferManager)
         {
             this._stream = stream;
             this._bufferManager = bufferManager;
@@ -26,15 +28,13 @@ namespace Magic.Net.Server
         #region Implementation of INetConnectionAdapter
 
         public abstract bool IsConnected { get; }
-        public Uri Address { get; private set; }
-        public void Open(bool withOwnThread)
-        {
-            throw new NotImplementedException();
-        }
+        public Uri RemoteAddress { get; protected set; }
+        
+        public abstract void Open();
 
-        public void Close()
+        public virtual void Close()
         {
-            throw new NotImplementedException();
+            _stream.Close();
         }
 
         [CanBeNull]
@@ -73,12 +73,21 @@ namespace Magic.Net.Server
             return  p;
         }
 
-        public void WriteData(IEnumerable<ArraySegment<byte>> buffers)
+        public void WriteData(params ArraySegment<byte>[] buffers)
         {
-            foreach (var buffer in buffers)
+            // ReSharper disable once BuiltInTypeReferenceStyle
+            Int32 len = buffers.Sum(b => b.Count);
+            byte[] lenBuffer = _bufferManager.TakeBuffer(4);
+
+            len.ToBuffer(lenBuffer);
+            _stream.Write(lenBuffer, 0, 4);
+            _bufferManager.ReturnBuffer(lenBuffer);
+
+            foreach (ArraySegment<byte> arraySegment in buffers)
             {
-                _stream.Write(buffer.Array, buffer.Offset, buffer.Count);
+                _stream.Write(arraySegment.Array, arraySegment.Offset, arraySegment.Count);
             }
+
             _stream.Flush();
         }
 

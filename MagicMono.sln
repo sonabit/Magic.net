@@ -18,7 +18,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{C76A05
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NUnit.Magic.Net.Test", "NUnit.Magic.Net.Test\NUnit.Magic.Net.Test.csproj", "{A97FFB8B-C4B1-4D24-87A1-C69A2A188139}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Magic.Net.Node.Sample", "Magic.Net.Node.Sample\Magic.Net.Node.Sample.csproj", "{30DF28D7-799D-449E-B329-51F167054D4A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Magic.Net.Sample.Node.Server", "Samples\Magic.Net.Sample.Node.Server\Magic.Net.Sample.Node.Server.csproj", "{30DF28D7-799D-449E-B329-51F167054D4A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Magic.Net.Sample.Node.Client", "Samples\Magic.Net.Sample.Node.Client\Magic.Net.Sample.Node.Client.csproj", "{6711AEEE-3DAF-4E95-B646-89BB89D0DF35}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Magic.Net.Sample.Node.Helper", "Samples\Magic.Net.Sample.Node.Helper\Magic.Net.Sample.Node.Helper.csproj", "{3B518A73-1C44-44D3-BB45-84A29E0C49B3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +55,18 @@ Global
 		{30DF28D7-799D-449E-B329-51F167054D4A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{30DF28D7-799D-449E-B329-51F167054D4A}.RemoteDebug|Any CPU.ActiveCfg = Debug|Any CPU
 		{30DF28D7-799D-449E-B329-51F167054D4A}.RemoteDebug|Any CPU.Build.0 = Debug|Any CPU
+		{6711AEEE-3DAF-4E95-B646-89BB89D0DF35}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6711AEEE-3DAF-4E95-B646-89BB89D0DF35}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6711AEEE-3DAF-4E95-B646-89BB89D0DF35}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6711AEEE-3DAF-4E95-B646-89BB89D0DF35}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6711AEEE-3DAF-4E95-B646-89BB89D0DF35}.RemoteDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6711AEEE-3DAF-4E95-B646-89BB89D0DF35}.RemoteDebug|Any CPU.Build.0 = Debug|Any CPU
+		{3B518A73-1C44-44D3-BB45-84A29E0C49B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B518A73-1C44-44D3-BB45-84A29E0C49B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B518A73-1C44-44D3-BB45-84A29E0C49B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B518A73-1C44-44D3-BB45-84A29E0C49B3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B518A73-1C44-44D3-BB45-84A29E0C49B3}.RemoteDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B518A73-1C44-44D3-BB45-84A29E0C49B3}.RemoteDebug|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -59,5 +75,7 @@ Global
 		{CA928FF9-080B-4741-9C75-C67E4D7CF2AA} = {B7B518A8-1A14-45F7-B3EB-B613E3327CB8}
 		{A97FFB8B-C4B1-4D24-87A1-C69A2A188139} = {B7B518A8-1A14-45F7-B3EB-B613E3327CB8}
 		{30DF28D7-799D-449E-B329-51F167054D4A} = {A0D1C58C-FDA8-48C8-AEAF-B0EE96CFD7F7}
+		{6711AEEE-3DAF-4E95-B646-89BB89D0DF35} = {A0D1C58C-FDA8-48C8-AEAF-B0EE96CFD7F7}
+		{3B518A73-1C44-44D3-BB45-84A29E0C49B3} = {A0D1C58C-FDA8-48C8-AEAF-B0EE96CFD7F7}
 	EndGlobalSection
 EndGlobal

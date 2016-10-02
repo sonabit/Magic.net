@@ -15,12 +15,14 @@ namespace Magic.Serialization
         void Serialize(Stream stream);
     }
 
-    internal interface ISerializeFormatterCollection
+    public interface ISerializeFormatterCollection
     {
         ISerializeFormatter this[DataSerializeFormat index] { get; }
+
+        ISerializeFormatter GetFormatter(DataSerializeFormat index);
     }
 
-    internal interface ISerializeFormatter
+    public interface ISerializeFormatter
     {
         TResult Deserialize<TResult>(byte[] bytes, long startPosition);
         byte[] Serialize<TResult>(TResult value);
@@ -81,6 +83,11 @@ namespace Magic.Serialization
         public ISerializeFormatter this[DataSerializeFormat index]
         {
             get { return _formatters[index]; }
+        }
+
+        public ISerializeFormatter GetFormatter(DataSerializeFormat index)
+        {
+            return _formatters[index];
         }
     }
 

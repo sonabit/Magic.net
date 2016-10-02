@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 
+// ReSharper disable once CheckNamespace
 namespace System.Linq
 {
-    public static class MagLinqExtension
+    public static class MagicLinqExtension
     {
         /// <summary>
         /// Performs the specified action on each element of the source.

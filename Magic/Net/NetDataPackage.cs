@@ -16,7 +16,7 @@ namespace Magic.Net
 
         public NetDataPackage(byte[] buffer)
         {
-            _header = new NetDataPackageHeader(buffer);
+            _header = new NetDataPackageHeader(ref buffer);
             _buffer = new ArraySegment<byte>(buffer, _header.ByteLength, buffer.Length - _header.ByteLength);
         }
         
@@ -39,7 +39,7 @@ namespace Magic.Net
     {
         private readonly int _byteLength;
 
-        public NetDataPackageHeader(byte[] buffer)
+        public NetDataPackageHeader(ref byte[] buffer)
         {
             int len = 0;
             if (buffer.Length > 0)
@@ -61,6 +61,14 @@ namespace Magic.Net
             _byteLength = len;
         }
 
+        public NetDataPackageHeader(byte version, DataPackageContentType packageContentType, DataSerializeFormat serializeFormat)
+        {
+            Version = version;
+            PackageContentType = packageContentType;
+            SerializeFormat = serializeFormat;
+            _byteLength = 3;
+        }
+
         internal int ByteLength
         {
             get { return _byteLength; }
@@ -71,5 +79,10 @@ namespace Magic.Net
         public DataPackageContentType PackageContentType { get; private set; }
 
         public DataSerializeFormat SerializeFormat { get; private set; }
+
+        public byte[] ToBytes()
+        {
+            return new byte[] {Version, (byte)PackageContentType, (byte)SerializeFormat};
+        }
     }
 }

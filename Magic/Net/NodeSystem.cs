@@ -1,24 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Linq.Expressions;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.ServiceModel.Channels;
 using JetBrains.Annotations;
-using Magic.Net.Server;
+using Magic.Serialization;
 
 namespace Magic.Net
 {
     public sealed class NodeSystem : ISystem
     {
-        [NotNull,ItemNotNull]
-        private readonly List<INetConnection> _connections = new List<INetConnection>();
+        private readonly BufferManager _bufferManager = BufferManager.CreateBufferManager(300*1024*1024, 2*1024*1024);
 
-        private readonly IBufferManager _bufferManager = new BufferManager();
-        private  readonly DataPackageHandler _packageHandler = new DataPackageHandler();
+        [NotNull, ItemNotNull] private readonly List<INetConnection> _connections = new List<INetConnection>();
+        private readonly ISerializeFormatterCollection _formatterCollection = new DefaulSerializeFormatter();
+
+        private readonly DataPackageHandler _packageHandler;
 
         public NodeSystem()
         {
-            //this.channels = channels;
+            //
+        }
+
+        public NodeSystem(IServiceProvider serviceProvider)
+        {
+            _packageHandler = new DataPackageHandler(serviceProvider, _formatterCollection);
+        }
+
+        public void AddConnection([NotNull] INetConnection connection)
+        {
+            lock (_connections)
+            {
+                _connections.Add(connection);
+            }
         }
 
         public void Start()
@@ -35,116 +50,89 @@ namespace Magic.Net
             }
         }
 
-        public void AddConnection([NotNull]INetConnection connection)
-        {
-            lock (_connections)
-            {
-                _connections.Add(connection);
-            }
-        }
-
-        #region Implementation of ISystem
-
-        public IBufferManager BufferManager { get { return _bufferManager; } }
-        public IDataPackageHandler PackageHandler { get { return _packageHandler; } }
-
-        #endregion
-
         public void Stop()
         {
             lock (_connections)
             {
-                foreach (INetConnection netConnection in _connections.ToArray())
+                foreach (var netConnection in _connections.ToArray())
                 {
                     netConnection.Close();
-                    IDisposable disposable = netConnection as IDisposable;
+                    var disposable = netConnection as IDisposable;
                     if (disposable != null)
                         disposable.Dispose();
                 }
-                _connections.Clear();
             }
         }
+
+        public TResult Exc<TResult>(Uri remoteAddress, Expression<Func<TResult>> expression)
+        {
+            var connection = FindConnection(remoteAddress);
+
+            if (connection == null)
+                throw new Exception();
+
+            var command = expression.ToNetCommand();
+
+            return Execute<TResult>(connection, command);
+        }
+
+        public TResult Exc2<TRemoteType, TResult>(Uri remoteAddress, Expression<Func<TRemoteType, TResult>> expression)
+        {
+            var connection = FindConnection(remoteAddress);
+
+            var command = expression.ToNetCommand();
+
+            return default(TResult);
+        }
+
+        private INetConnection FindConnection(Uri remoteAddress)
+        {
+            lock (_connections)
+            {
+                return _connections.FirstOrDefault(c => c.RemoteAddress.Host == remoteAddress.Host &&
+                                                        c.RemoteAddress.GetStringOfSegment(1) ==
+                                                        remoteAddress.GetStringOfSegment(1));
+            }
+        }
+
+        private TResult Execute<TResult>(INetConnection connection, INetCommand command)
+        {
+            NetDataPackageHeader header = null;
+            byte[] package = null;
+            var magicSerialization = command as IMagicSerialization;
+            if (magicSerialization != null)
+            {
+                header = new NetDataPackageHeader(1, DataPackageContentType.NetCommand, DataSerializeFormat.Magic);
+                package = magicSerialization.ToBytes();
+            }
+            else
+            {
+                header = new NetDataPackageHeader(1, DataPackageContentType.NetCommand, DataSerializeFormat.MsBinary);
+                ISerializeFormatter s = _formatterCollection[DataSerializeFormat.MsBinary];
+                package = s.Serialize(command);
+            }
+            connection.Send(new[] { header.ToBytes(), package});
+
+            return default(TResult);
+        }
+
+        #region Implementation of ISystem
+
+        public BufferManager BufferManager
+        {
+            get { return _bufferManager; }
+        }
+
+        public IDataPackageHandler PackageHandler
+        {
+            get { return _packageHandler; }
+        }
+
+        #endregion
     }
 
-    public interface ISystem
+    public static class Proxy<TTarget>
     {
-        IBufferManager BufferManager { get; }
-
-        IDataPackageHandler PackageHandler { get; }
+        public static TTarget Target { get { return default(TTarget); } }
     }
-
-    //public class ConnectionFactory
-    //{
-    //    private readonly Dictionary<ConnectionSchema, ConnectionActivator> schemas = new Dictionary<ConnectionSchema, ConnectionActivator>
-    //    {
-    //        //{ new ConnectionSchema("MGPIP",ConnectionType.Server) , new ConnectionFuncActivator(node => new NamedPipeServerNetConnection(node) )}
-    //    };
-        
-    //    [CanBeNull]
-    //    public INetConnection Create(ConnectionSchema schema, ISystem system)
-    //    {
-    //        ConnectionActivator activator;
-    //        if (schemas.TryGetValue(schema, out activator))
-    //        {
-    //            return activator.Create(system);
-    //        }
-
-    //        return null;
-    //    }
-    //}
-
-
-    //public struct ConnectionSchema
-    //{
-    //    private readonly string _schema;
-    //    private readonly ConnectionType _connectionType;
-
-    //    public ConnectionSchema(string schema, ConnectionType type)
-    //    {
-    //        _schema = schema;
-    //        _connectionType = type;
-    //    }
-
-    //    public string Schema
-    //    {
-    //        get { return _schema; }
-    //    }
-
-    //    public ConnectionType ConnectionType
-    //    {
-    //        get { return _connectionType; }
-    //    }
-    //}
-
-    //public enum ConnectionType
-    //{
-    //    Client = 0,
-    //    Server =1 
-    //}
-
-
-    //public abstract class ConnectionActivator
-    //{
-    //    public abstract INetConnection Create(ISystem system);
-    //}
-
-    //class ConnectionFuncActivator : ConnectionActivator
-    //{
-    //    private readonly Func<ISystem, INetConnection> _func;
-
-    //    public ConnectionFuncActivator(Func<ISystem,INetConnection> func)
-    //    {
-    //        _func = func;
-    //    }
-
-    //    #region Overrides of ConnectionActivator
-
-    //    public override INetConnection Create(ISystem system)
-    //    {
-    //        return _func(system);
-    //    }
-
-    //    #endregion
-    //}
 }
-

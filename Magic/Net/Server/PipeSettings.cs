@@ -11,12 +11,7 @@ namespace Magic.Net.Server
         public PipeSettings([NotNull]Uri uri)
         {
             _uri = uri;
-            var pipeName = _uri.Segments[1];
-            if (pipeName[pipeName.Length - 1] == '/')
-            {
-                pipeName = pipeName.Substring(0, pipeName.Length - 1);
-            }
-            _pipeName = pipeName;
+            _pipeName = uri.GetStringOfSegment(1); ;
         }
         
         public Uri Uri
