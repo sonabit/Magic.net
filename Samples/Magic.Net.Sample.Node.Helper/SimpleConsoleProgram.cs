@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 using JetBrains.Annotations;
 
 namespace Magic.Net.Sample.Node
 {
     public abstract class SimpleConsoleProgram
     {
-        [PublicAPI]
+        [DebuggerStepThrough, PublicAPI]
         public static void Run(string[] args, SimpleConsoleProgram program)
         {
             program.Start(args);

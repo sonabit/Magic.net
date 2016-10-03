@@ -5,6 +5,7 @@ namespace Magic.Net
     [Flags]
     public enum NetCommandExceptionReasonses : int
     {
-        UnknownPackageContentType
+        UnknownPackageContentType,
+        PackeContentTypeRejected
     }
 }

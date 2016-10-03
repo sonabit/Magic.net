@@ -74,10 +74,12 @@
     <Compile Include="Net\NamedPipeAdapter.cs" />
     <Compile Include="Net\NamedPipeClientStreamAdapter.cs" />
     <Compile Include="Net\NamedPipeNetConnection.cs" />
+    <Compile Include="Net\NetDataPackageHeader.cs" />
     <Compile Include="Net\NodeSystem.cs" />
+    <Compile Include="Net\RequestState.cs" />
     <Compile Include="Net\Server\NamedPipeServerNetConnection.cs" />
     <Compile Include="Net\ReadWriteStreamAdapter.cs" />
-    <Compile Include="Net\Server\PipeSettings.cs" />
+    <Compile Include="Net\ServiceCollection.cs" />
     <Compile Include="Serialization\IMagicSerialization.cs" />
     <Compile Include="Net\INetConnection.cs" />
     <Compile Include="Net\NetCommand.cs" />

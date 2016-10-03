@@ -8,7 +8,9 @@ namespace Magic.Net
     public enum DataPackageContentType : byte
     {
         NetCommand = 1,
-        NetCommandStream = 10
+        NetCommandResult = 2,
+        NetCommandStream = 10,
+        ConnectionMetaData = 20
     }
 
     [PublicAPI]

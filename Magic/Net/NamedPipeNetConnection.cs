@@ -11,17 +11,19 @@ namespace Magic.Net
 
     public sealed class NamedPipeNetConnection : NetConnection
     {
-        public NamedPipeNetConnection(Uri remoteUri, ISystem system) 
-            : base(CreateConnectionAdapter(remoteUri, system), system.PackageHandler, system.BufferManager)
+        public NamedPipeNetConnection(Uri remoteAddress, ISystem system) 
+            : base(CreateConnectionAdapter(remoteAddress, system), system, system.PackageHandler, system.BufferManager)
         {
 
         }
 
-        private static INetConnectionAdapter CreateConnectionAdapter(Uri remoteUri, ISystem system)
+        private static INetConnectionAdapter CreateConnectionAdapter(Uri remoteAddress, ISystem system)
         {
-            var pipe = new NamedPipeClientStream(remoteUri.Host, remoteUri.GetStringOfSegment(1),
+            MagicNetEndPoint endPoint = new MagicNetEndPoint(remoteAddress);
+            var pipe = new NamedPipeClientStream(endPoint.Host, endPoint.SystemName,
                     PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.WriteThrough);
-            return new NamedPipeClientStreamAdapter(pipe, new Uri(string.Format("magic://{0}/{1}", remoteUri.Host, remoteUri.GetStringOfSegment(1))), system.BufferManager);
+
+            return new NamedPipeClientStreamAdapter(pipe, endPoint.AsRemoteUri(), system.BufferManager);
         }
     }
 }

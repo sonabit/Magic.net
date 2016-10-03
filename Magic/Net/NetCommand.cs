@@ -1,39 +1,45 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Xml.Serialization;
 using JetBrains.Annotations;
-using Magic.Net;
-using Magic.Serialization;
 
 namespace Magic.Net
 {
     [Serializable]
-    public sealed class NetCommand : INetCommand//, IMagicSerialization
+    public sealed class NetCommand : INetCommand //, IMagicSerialization
     {
-        private readonly MethodInfo _methodName;
-        private readonly ParameterInfo[] _parameterInfos;
-        private readonly object[] _parameterValues;
-        private readonly Type _serviceType;
-
         [UsedImplicitly]
         public NetCommand()
         {
             // used for serialization
         }
 
-        public NetCommand(Type serviceType, MethodInfo methodName, ParameterInfo[] parameterInfos, object[] parameterValues)
+        public NetCommand(Type serviceType, MethodInfo methodName, ParameterInfo[] parameterInfos,
+            object[] parameterValues)
         {
-            this._serviceType = serviceType;
-            this._methodName = methodName;
-            this._parameterInfos = parameterInfos;
-            this._parameterValues = parameterValues;
+            _id = Guid.NewGuid();
+            _serviceType = serviceType;
+            _methodName = methodName;
+            _parameterInfos = parameterInfos;
+            _parameterValues = parameterValues;
         }
 
+        #region Fields
+
+        private readonly Guid _id;
+        private readonly MethodInfo _methodName;
+        private readonly ParameterInfo[] _parameterInfos;
+        private readonly object[] _parameterValues;
+        private readonly Type _serviceType;
+
+        #endregion Fields
+
         #region Implementation of INetCommand
+
+        public Guid Id
+        {
+            get { return _id; }
+        }
 
         public Type ServiceType
         {
@@ -61,15 +67,42 @@ namespace Magic.Net
 
         public void Deserialize(Stream stream)
         {
-
-            return;
         }
 
         public void Serialize(Stream stream)
         {
-            return;
         }
 
         #endregion  Implementation of IMagicSerialization<NetCommand>
+    }
+
+    [Serializable]
+    public sealed class NetCommandResult
+    {
+        #region Fields
+        private readonly Guid _commandId;
+        private readonly object _result;
+
+        #endregion Fields
+
+        #region Ctors
+
+        public NetCommandResult(Guid commandId, object result)
+        {
+            _commandId = commandId;
+            _result = result;
+        }
+
+        #endregion Ctors
+
+        public Guid CommandId
+        {
+            get { return _commandId; }
+        }
+
+        public object Result
+        {
+            get { return _result; }
+        }
     }
 }

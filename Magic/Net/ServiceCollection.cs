@@ -2,11 +2,22 @@
 using System.Collections.Generic;
 using JetBrains.Annotations;
 
-namespace Magic.Net.Sample.Node.Server
+namespace Magic.Net
 {
-    internal sealed class ServiceCollection : IServiceProvider
+    /// <summary>
+    /// A simple IOC
+    /// </summary>
+    public sealed class ServiceCollection : IServiceProvider
     {
-        private readonly Dictionary<Type, ServiceCreator> _services = new Dictionary<Type, ServiceCreator>(); 
+        private readonly Dictionary<Type, ServiceCreator> _services = new Dictionary<Type, ServiceCreator>();
+
+        /// <summary>
+        /// Create an instance of a simple IOC.
+        /// </summary>
+        public ServiceCollection()
+        {
+            
+        }
 
         public void AddService<TService>(Func<TService> func )
         {
@@ -35,7 +46,7 @@ namespace Magic.Net.Sample.Node.Server
 
         #endregion
 
-        sealed class StaticService<TService> : ServiceCreator
+        private sealed class StaticService<TService> : ServiceCreator
         {
             private readonly TService _instance;
 
@@ -55,7 +66,7 @@ namespace Magic.Net.Sample.Node.Server
             #endregion
         }
 
-        sealed class ServiceFuncCreator<TService> : ServiceCreator
+        private sealed class ServiceFuncCreator<TService> : ServiceCreator
         {
             private readonly Func<TService> _func;
 
@@ -75,7 +86,7 @@ namespace Magic.Net.Sample.Node.Server
             #endregion
         }
 
-        abstract class ServiceCreator
+        private abstract class ServiceCreator
         {
             private readonly Type _serviceType;
 

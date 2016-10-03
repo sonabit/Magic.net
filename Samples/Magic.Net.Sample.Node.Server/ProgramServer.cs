@@ -9,19 +9,16 @@ namespace Magic.Net.Sample.Node.Server
 
         private static void Main(string[] args)
         {
-            // URI  magic://hostname:port/SystemName
-            var mySystemChannelUri1 = new Uri("magic://localhost:4242/TestSystem");
-
-            var serviceCollection = new ServiceCollection();
+            // URI  magic://hostname:port/direction/SystemName
+            var mySystemChannelUri1 = new Uri("magic://localhost:4242/local/TestSystem");
+            ServiceCollection serviceCollection = new ServiceCollection();
             serviceCollection.AddService(() => (IMyDataService)new MyDataServiceImpl());
-            _nodeSystem = new NodeSystem(serviceCollection);
-
-
-            NamedPipeServerNetConnection pipeConnection = new NamedPipeServerNetConnection(new PipeSettings(mySystemChannelUri1), _nodeSystem);
+            _nodeSystem = new NodeSystem(mySystemChannelUri1, serviceCollection);
+            NamedPipeServerNetConnection pipeConnection = new NamedPipeServerNetConnection(mySystemChannelUri1, _nodeSystem);
             pipeConnection.ConnectionAccepted += pipeConnectionOnConnectionAccepted;
-
             _nodeSystem.AddConnection(pipeConnection);
             _nodeSystem.Start();
+            
 
             ConsoleKeyInfo key;
             do
@@ -36,7 +33,7 @@ namespace Magic.Net.Sample.Node.Server
 
         private static void pipeConnectionOnConnectionAccepted(object sender, INetConnection e)
         {
-            Console.WriteLine("Accepted Connection " + e.GetType().Name);
+            Console.WriteLine("Accepted Connection " + e.RemoteAddress + e.GetType().Name);
         }
     }
 }

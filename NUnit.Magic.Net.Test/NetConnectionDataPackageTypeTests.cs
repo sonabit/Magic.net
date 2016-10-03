@@ -27,7 +27,7 @@ namespace NUnit.Magic.Net.Test
             var exception = Assert.Throws<NetCommandException>(_connection.CallDequeueReceivedData);
 
             Assert.NotNull(exception);
-            Assert.AreEqual("package.PackageContentType 255 unknown.", exception.Message);
+            Assert.AreEqual("PackageContentType 255 unknown.", exception.Message);
             Assert.AreEqual(NetCommandExceptionReasonses.UnknownPackageContentType, exception.Reasonses);
         }
 
@@ -37,7 +37,7 @@ namespace NUnit.Magic.Net.Test
             var package = new NetDataPackage(new byte[] { 1, 1, 0, 0, 0 });
             _connection.AddAddToReceivedDataQueue(package);
             _connection.CallDequeueReceivedData();
-            A.CallTo(() => _dataPackageHandler.ReceiveCommand(A<NetDataPackage>.Ignored)).MustHaveHappened(Repeated.AtLeast.Once);
+            A.CallTo(() => _dataPackageHandler.ReceiveCommand(A<RequestState>.Ignored)).MustHaveHappened(Repeated.AtLeast.Once);
         }
 
         [Test, Category("package type")]
@@ -47,7 +47,7 @@ namespace NUnit.Magic.Net.Test
             _connection.AddAddToReceivedDataQueue(package);
             _connection.CallDequeueReceivedData();
 
-            A.CallTo(() => _dataPackageHandler.ReceiveCommandStream(package)).MustHaveHappened(Repeated.AtLeast.Once);
+            A.CallTo(() => _dataPackageHandler.ReceiveCommandStream(A<RequestState>.Ignored)).MustHaveHappened(Repeated.AtLeast.Once);
         }
     }
 }

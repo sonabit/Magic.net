@@ -40,7 +40,7 @@ namespace NUnit.Magic.Net.Test
 
             connection.CallDequeueReceivedData();
 
-            A.CallTo(() => dataPackageHandler.ReceiveCommand(A<NetDataPackage>.Ignored)).MustHaveHappened(Repeated.Exactly.Once);
+            A.CallTo(() => dataPackageHandler.ReceiveCommand(A<RequestState>.Ignored)).MustHaveHappened(Repeated.Exactly.Once);
         }
 
         [Test, Category("data package version")]

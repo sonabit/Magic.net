@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.ServiceModel.Channels;
+using System.Text;
 using System.Threading;
 using JetBrains.Annotations;
 
@@ -12,33 +13,53 @@ namespace Magic.Net.Server
 {
     public sealed class NamedPipeServerNetConnection : INetConnection, IDisposable
     {
-        [NotNull]
-        private readonly PipeSettings _settings;
-
-        private readonly ISystem _nodeSystem;
-        
-        private bool _disposedValue = false; // Dient zur Erkennung redundanter Aufrufe.
         private readonly ManualResetEventSlim _closeEvent = new ManualResetEventSlim(true);
-        private readonly ManualResetEventSlim _connectionInLimitEvent = new ManualResetEventSlim(true);
         private readonly List<INetConnection> _connectionHosts = new List<INetConnection>();
+        private readonly ManualResetEventSlim _connectionInLimitEvent = new ManualResetEventSlim(true);
+        private readonly ISystem _nodeSystem;
 
+        private bool _disposedValue; // Dient zur Erkennung redundanter Aufrufe.
+        private readonly MagicNetEndPoint _localEndPoint;
 
-        public event EventHandler<INetConnection> ConnectionAccepted;
-
-        public NamedPipeServerNetConnection([NotNull]PipeSettings settings, ISystem nodeSystem)
+        public NamedPipeServerNetConnection([NotNull] Uri localAddress, ISystem nodeSystem)
         {
-            _settings = settings;
+            _localEndPoint = new MagicNetEndPoint(localAddress);
             _nodeSystem = nodeSystem;
         }
 
         public Uri RemoteAddress
         {
-            get { return _settings.Uri; }
+            get { throw new NotSupportedException("This instance is a listener."); }
+        }
+
+        public int TimeoutMilliseconds
+        {
+            get { throw new NotSupportedException("This instance is a listener."); }
+        }
+
+        public DataSerializeFormat DefaultSerializeFormat { get { return DataSerializeFormat.MsBinary;} }
+
+
+        public event EventHandler<INetConnection> ConnectionAccepted;
+
+        private void OnDisconnected()
+        {
+            Action<INetConnection> handler = Disconnected;
+            if (handler != null) handler(this);
+        }
+
+        private void OnConnectionAccepted(INetConnection connection)
+        {
+            EventHandler<INetConnection> handler = ConnectionAccepted;
+            if (handler != null) handler(this, connection);
         }
 
         #region Implementation of INetConnectionAdapter
 
-        public bool IsConnected { get { return !_closeEvent.IsSet; } }
+        public bool IsConnected
+        {
+            get { return !_closeEvent.IsSet; }
+        }
 
         public void Open()
         {
@@ -61,6 +82,11 @@ namespace Magic.Net.Server
             throw new NotSupportedException("This instance is a listener.");
         }
 
+        public void Send(params ArraySegment<byte>[] segments)
+        {
+            throw new NotSupportedException("This instance is a listener.");
+        }
+
         private void OpenInternal(bool withOwnThread)
         {
             CloseInternal();
@@ -73,9 +99,8 @@ namespace Magic.Net.Server
             {
                 AcceptConnections();
             }
-            
         }
-        
+
         private void CloseInternal()
         {
             _closeEvent.Set();
@@ -95,10 +120,12 @@ namespace Magic.Net.Server
             {
                 try
                 {
-                    NamedPipeServerStream pipeServerStream = new NamedPipeServerStream(_settings.PipeName, PipeDirection.InOut,
-                        NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.WriteThrough);
-                    IAsyncResult asyncResult = pipeServerStream.BeginWaitForConnection(AcceptConnection_OnCallback, pipeServerStream);
-                    WaitHandle.WaitAny(new[] { asyncResult.AsyncWaitHandle, _closeEvent.WaitHandle });
+                    var pipeServerStream = new NamedPipeServerStream(_localEndPoint.SystemName, PipeDirection.InOut,
+                        NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte,
+                        PipeOptions.Asynchronous | PipeOptions.WriteThrough);
+                    var asyncResult = pipeServerStream.BeginWaitForConnection(AcceptConnection_OnCallback,
+                        pipeServerStream);
+                    WaitHandle.WaitAny(new[] {asyncResult.AsyncWaitHandle, _closeEvent.WaitHandle});
                     if (!asyncResult.IsCompleted)
                     {
                         pipeServerStream.Close();
@@ -106,7 +133,7 @@ namespace Magic.Net.Server
                 }
                 catch (IOException ioException)
                 {
-                    if ((UInt32)ioException.HResult == 0x800700E7) //(-2147024665) All pipe instances are busy
+                    if ((uint) ioException.HResult == 0x800700E7) //(-2147024665) All pipe instances are busy
                     {
                         _connectionInLimitEvent.Reset();
 
@@ -117,11 +144,9 @@ namespace Magic.Net.Server
                         continue;
                     }
                     throw;
-
                 }
                 catch (ObjectDisposedException)
                 {
-                    continue;
                 }
                 catch (ThreadAbortException)
                 {
@@ -132,7 +157,7 @@ namespace Magic.Net.Server
 
         private void AcceptConnection_OnCallback(IAsyncResult ar)
         {
-            NamedPipeServerStream stream = (NamedPipeServerStream)ar.AsyncState;
+            var stream = (NamedPipeServerStream) ar.AsyncState;
             try
             {
                 stream.EndWaitForConnection(ar);
@@ -142,21 +167,37 @@ namespace Magic.Net.Server
                 return;
             }
 
-            ReadWriteStreamAdapter adapter = new NamedPipeClientHostAdapter(stream, _nodeSystem.BufferManager);
-
-            NetConnection connection = new NetConnection(adapter, _nodeSystem.PackageHandler, _nodeSystem.BufferManager);
-
-            Trace.WriteLine("NetCommandPipeServer: new StreamNetConnection");
-
-            connection.Disconnected += HostOnDisconnected;
-            lock (_connectionHosts)
+            try
             {
-                _connectionHosts.Add(connection);
-            }
-            connection.BeginRead(true);
+                NamedPipeClientHostAdapter adapter = new NamedPipeClientHostAdapter(stream, _localEndPoint.AsRemoteUri(), _nodeSystem.BufferManager);
+                adapter.Initialize();
 
-            OnConnectionAccepted(connection);
+                var connection = new NetConnection(adapter, _nodeSystem, _nodeSystem.PackageHandler,
+                    _nodeSystem.BufferManager);
+
+                Trace.WriteLine("NetCommandPipeServer: new StreamNetConnection");
+
+                connection.Disconnected += HostOnDisconnected;
+                lock (_connectionHosts)
+                {
+                    _connectionHosts.Add(connection);
+                }
+                connection.InitializeConnection(true);
+
+                OnConnectionAccepted(connection);
+            }
+            catch (NetCommandException ex)
+            {
+                // NetCommandException
+                Trace.WriteLine(string.Format("{0} - {1}: {2}", ex.GetType().Name, ex.Reasonses, ex.Message));
+            }
+            catch (Exception ex)
+            {
+                // Exception
+                Trace.WriteLine(string.Format("{0}: {1}", ex.GetType().Name, ex.Message));
+            }
         }
+
         private void HostOnDisconnected(INetConnection sender)
         {
             sender.Disconnected -= HostOnDisconnected;
@@ -167,9 +208,9 @@ namespace Magic.Net.Server
             if (!_connectionInLimitEvent.IsSet)
                 _connectionInLimitEvent.Set();
         }
-        
+
         #region IDisposable Support
-        
+
         private void Dispose(bool disposingManagedObjects)
         {
             if (!_disposedValue)
@@ -200,47 +241,54 @@ namespace Magic.Net.Server
             // Auskommentierung der folgenden Zeile aufheben, wenn der Finalizer weiter oben überschrieben wird.
             // GC.SuppressFinalize(this);
         }
-        #endregion
 
         #endregion
 
-        private void OnDisconnected()
-        {
-            var handler = Disconnected;
-            if (handler != null) handler(this);
-        }
-
-        private void OnConnectionAccepted(INetConnection connection)
-        {
-            var handler = ConnectionAccepted;
-            if (handler != null) handler(this, connection);
-        }
+        #endregion
     }
 
-    sealed class NamedPipeClientHostAdapter : NamedPipeAdapter
+    internal sealed class NamedPipeClientHostAdapter : NamedPipeAdapter
     {
-        [NotNull]
-        private readonly NamedPipeServerStream _stream;
+        [NotNull] private readonly NamedPipeServerStream _stream;
+        private readonly Uri _localAddress;
 
-        internal NamedPipeClientHostAdapter([NotNull] NamedPipeServerStream stream, [NotNull] BufferManager bufferManager) 
+        internal NamedPipeClientHostAdapter([NotNull] NamedPipeServerStream stream, Uri localAddress, [NotNull] BufferManager bufferManager)
             : base(stream, bufferManager)
         {
             _stream = stream;
+            _localAddress = localAddress;
+        }
+        
+        internal void Initialize()
+        {
+            var data = ReadData();
+            if (data == null || data.PackageContentType != DataPackageContentType.ConnectionMetaData)
+            {
+                Dispose();
+                throw new NetCommandException(NetCommandExceptionReasonses.PackeContentTypeRejected,
+                    "The first have to be a DataPackageContentType.ConnectionMetaData");
+            }
+
+            if (data.PackageContentType == DataPackageContentType.ConnectionMetaData)
+            {
+                var uriString = Encoding.UTF8.GetString(data.Buffer.Array, data.Buffer.Offset, data.Buffer.Count);
+                RemoteAddress = new Uri(uriString);
+            }
         }
 
         #region Overrides of ReadWriteStreamAdapter
 
-        public sealed override void Open()
+        public override void Open()
         {
             throw new NotSupportedException();
         }
+
         public override void Close()
         {
             _stream.Disconnect();
             base.Close();
         }
-        
+
         #endregion
     }
-
 }

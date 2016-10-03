@@ -4,19 +4,18 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.ServiceModel.Channels;
 using System.Threading;
-using System.Threading.Tasks;
 using JetBrains.Annotations;
-using Magic.Serialization;
 
 namespace Magic.Net
 {
     public class NetConnection : INetConnection
     {
+        #region Fields
+
         private readonly INetConnectionAdapter _connectionAdapter;
+        private readonly ISystem _system;
         private readonly BufferManager _bufferManager;
         private static int[] _bufferFilter;
         private readonly IDataPackageDispatcher _dataPackageDispatcher;
@@ -26,16 +25,32 @@ namespace Magic.Net
 
         private readonly AutoResetEvent _receivedDataResetEvent = new AutoResetEvent(false);
         private readonly AutoResetEvent _processSendingWaiter = new AutoResetEvent(false);
-        private bool _isDisposed;
+        private bool _isDisposed = false;
+        // ReSharper disable once InconsistentNaming
+        private event Action<INetConnection> _disconnected;
+        
+        #endregion Fields
 
-        public NetConnection(INetConnectionAdapter connectionAdapter, IDataPackageHandler dataPackageHandler, BufferManager bufferManager)
+        #region Ctros
+
+        public NetConnection(INetConnectionAdapter connectionAdapter, ISystem system, IDataPackageHandler dataPackageHandler, BufferManager bufferManager)
         {
+            TimeoutMilliseconds = Timeout.Infinite;
             _connectionAdapter = connectionAdapter;
+            _system = system;
             _bufferManager = bufferManager;
             _dataPackageDispatcher = new DataPackageDispatcher(dataPackageHandler);
         }
 
-        public event Action<INetConnection> Disconnected;
+        #endregion  Ctros
+
+        #region INetConnection
+
+        public event Action<INetConnection> Disconnected
+        {
+            add { this._disconnected += value; }
+            remove { this._disconnected -= value; }
+        }
 
         public void Send(params byte[][] bytes)
         {
@@ -51,11 +66,32 @@ namespace Magic.Net
             _processSendingWaiter.Set();
         }
 
+        public void Send(params ArraySegment<byte>[] segments)
+        {
+            _sendingQueue.Enqueue(segments);
+            _processSendingWaiter.Set();
+        }
+
+        public int TimeoutMilliseconds { get; [PublicAPI]set; }
+        public DataSerializeFormat DefaultSerializeFormat { get { return DataSerializeFormat.MsBinary;} }
+
         public void Open()
         {
-            _connectionAdapter.Open();
-            BeginSending(true);
-            BeginRead(true);
+            if (!_connectionAdapter.IsConnected)
+            {
+                _connectionAdapter.Open();
+            }
+
+            byte[] buffer = _connectionAdapter.Encoding.GetBytes(this.RemoteAddress.ToString());
+
+            NetDataPackage package =
+                new NetDataPackage(
+                    new NetDataPackageHeader(1, DataPackageContentType.ConnectionMetaData, DataSerializeFormat.Custom),
+                    buffer, 0, buffer.Length);
+
+            this.Send(package.DataSegments().ToArray());
+            
+            InitializeConnection(true);
         }
 
         public void Close()
@@ -74,9 +110,18 @@ namespace Magic.Net
         {
             get { return _connectionAdapter.RemoteAddress; }
         }
+
+        #endregion INetConnection
         
+        internal void InitializeConnection(bool withNewThread = false)
+        {
+            BeginSending(withNewThread);
+            
+            BeginRead(true);
+        }
+
         [ExcludeFromCodeCoverage]
-        public void BeginRead(bool withNewThread = false)
+        private void BeginRead(bool withNewThread = false)
         {
             new Thread(ProcessingReceivedDataQueueInternal) { IsBackground = true }.Start();
             if (withNewThread)
@@ -131,12 +176,12 @@ namespace Magic.Net
         {
             while (!_receivedDataQueue.IsEmpty)
             {
-                NetDataPackage package = null;
+                NetDataPackage package;
                 if (!_receivedDataQueue.TryDequeue(out package))
                     break;
                 if (package.IsEmpty) continue;
 
-                _dataPackageDispatcher.Handle(package);
+                _dataPackageDispatcher.Handle(new RequestState(this, package));
             }
         }
 
@@ -161,7 +206,7 @@ namespace Magic.Net
         }
 
         [ExcludeFromCodeCoverage]
-        public void BeginSending(bool withNewThread = false)
+        private void BeginSending(bool withNewThread = false)
         {
             if (withNewThread)
             {
@@ -209,24 +254,20 @@ namespace Magic.Net
                             }
                         }
 
-                        OnSendFinished(buffers);
-
-                        //if (ReleaseDataAfterSend)
+                        foreach (ArraySegment<byte> buffer in buffers)
                         {
-                            foreach (ArraySegment<byte> buffer in buffers)
-                            {
-                                if (Array.IndexOf(BufferFilter, buffer.Array.Length) > -1)
-                                    try
-                                    {
-                                        _bufferManager.ReturnBuffer(buffer.Array);
-                                    }
-                                    catch (Exception exception)
-                                    {
-                                        Trace.TraceError("Not enable to return buffer Length {0} : {1}", buffer.Array.Length, exception.Message);
-                                    }
-                            }
-                            //Array.Resize(ref buffers, 0);
+                            if (Array.IndexOf(BufferFilter, buffer.Array.Length) > -1)
+                                try
+                                {
+                                    _bufferManager.ReturnBuffer(buffer.Array);
+                                }
+                                catch (Exception exception)
+                                {
+                                    Trace.TraceError("Not enable to return buffer Length {0} : {1}", buffer.Array.Length,
+                                        exception.Message);
+                                }
                         }
+                        
                         buffers = null;
 
                         if (_isDisposed) break;
@@ -234,41 +275,18 @@ namespace Magic.Net
                 }
             }
 
-            CheckConnection();
-
             AbortedSending(buffers);
         }
 
         private void AbortedSending(ArraySegment<byte>[] buffers)
         {
-            
-        }
-
-        private void CheckConnection()
-        {
-            
-        }
-
-        private void HandelReceivedData([NotNull] NetDataPackage package)
-        {
-            _dataPackageDispatcher.Handle(package);
-        }
-
-
-        private void OnSendFinished(IEnumerable<ArraySegment<byte>> buffers)
-        {
-            
+            Trace.TraceInformation(string.Format("{0}.AbortedSending {1}", typeof (NetConnection).Name, _connectionAdapter.RemoteAddress));
         }
 
         private void OnDisconnected()
         {
-            var handler = Disconnected;
+            Action<INetConnection> handler = _disconnected;
             if (handler != null) handler(this);
         }
-    }
-
-    public interface INetConnectionSettings
-    {
-        Uri Uri { get; }
     }
 }

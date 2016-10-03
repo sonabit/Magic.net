@@ -54,7 +54,6 @@
     <Compile Include="MyDataServiceImpl.cs" />
     <Compile Include="ProgramServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ServiceCollection.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

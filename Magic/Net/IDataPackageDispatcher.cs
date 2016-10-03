@@ -1,7 +1,9 @@
-﻿namespace Magic.Net
+﻿using JetBrains.Annotations;
+
+namespace Magic.Net
 {
     internal interface IDataPackageDispatcher
     {
-        void Handle(NetDataPackage package);
+        void Handle([NotNull]RequestState requestState);
     }
 }

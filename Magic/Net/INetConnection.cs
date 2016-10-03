@@ -8,6 +8,9 @@ namespace Magic.Net
 
         Uri RemoteAddress { get; }
 
+        int TimeoutMilliseconds{ get; }
+        DataSerializeFormat DefaultSerializeFormat { get; }
+
         void Open();
 
         void Close();
@@ -15,5 +18,7 @@ namespace Magic.Net
         event Action<INetConnection> Disconnected;
         
         void Send(params byte[][] bytes);
+
+        void Send(params ArraySegment<byte>[] segments);
     }
 }

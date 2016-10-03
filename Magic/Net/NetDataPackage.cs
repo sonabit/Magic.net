@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 
 namespace Magic.Net
@@ -14,10 +15,19 @@ namespace Magic.Net
 
         #endregion
 
+        public NetDataPackage([NotNull] NetDataPackageHeader header, [NotNull] byte[] payLoad, int offset, int count)
+        {
+            if (header == null) throw new ArgumentNullException("header");
+            if (payLoad == null) throw new ArgumentNullException("payLoad");
+
+            _header = header;
+            _buffer = new ArraySegment<byte>(payLoad, offset, count);
+        }
+
         public NetDataPackage(byte[] buffer)
         {
             _header = new NetDataPackageHeader(ref buffer);
-            _buffer = new ArraySegment<byte>(buffer, _header.ByteLength, buffer.Length - _header.ByteLength);
+            _buffer = new ArraySegment<byte>(buffer, _header.HeaderLength, buffer.Length - _header.HeaderLength);
         }
         
         public ArraySegment<byte> Buffer
@@ -33,56 +43,11 @@ namespace Magic.Net
 
         public DataSerializeFormat SerializeFormat { get { return _header.SerializeFormat; } }
 
-    }
-
-    class NetDataPackageHeader
-    {
-        private readonly int _byteLength;
-
-        public NetDataPackageHeader(ref byte[] buffer)
+        public IEnumerable<ArraySegment<byte>> DataSegments()
         {
-            int len = 0;
-            if (buffer.Length > 0)
-            {
-                Version = buffer[0];
-                len++;
-            }
+            yield return new ArraySegment<byte>(_header.ToBytes());
+            yield return Buffer;
+        } 
 
-            if (buffer.Length > 1)
-            {
-                PackageContentType = (DataPackageContentType)buffer[1];
-                len++;
-            }
-            if (buffer.Length > 2)
-            {
-                SerializeFormat = (DataSerializeFormat)buffer[2];
-                len++;
-            }
-            _byteLength = len;
-        }
-
-        public NetDataPackageHeader(byte version, DataPackageContentType packageContentType, DataSerializeFormat serializeFormat)
-        {
-            Version = version;
-            PackageContentType = packageContentType;
-            SerializeFormat = serializeFormat;
-            _byteLength = 3;
-        }
-
-        internal int ByteLength
-        {
-            get { return _byteLength; }
-        }
-
-        public byte Version { get; private set; }
-
-        public DataPackageContentType PackageContentType { get; private set; }
-
-        public DataSerializeFormat SerializeFormat { get; private set; }
-
-        public byte[] ToBytes()
-        {
-            return new byte[] {Version, (byte)PackageContentType, (byte)SerializeFormat};
-        }
     }
 }

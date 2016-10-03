@@ -10,9 +10,10 @@ namespace Magic.Net.Sample.Node.Server
     [UsedImplicitly]
     internal sealed class MyDataServiceImpl : IMyDataService
     {
-        public string RemoveDuplicates(MyData data, int startIndex)
+        public string ReverseString(MyData data, int startIndex)
         {
-            return data.Text;
+            string result = data.Text.Substring(0, startIndex);
+            return result + new string(data.Text.Skip(startIndex).Reverse().ToArray());
         }
     }
 }

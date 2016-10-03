@@ -3,10 +3,12 @@
  */
 
 using System.Diagnostics;
+using JetBrains.Annotations;
 
+// ReSharper disable once CheckNamespace
 namespace System.Threading.Tasks
 {
-    [DebuggerStepThrough]
+    [DebuggerStepThrough, PublicAPI]
     public static class TaskHelper
     {
         public static Task Run<T1, T2, T3>(Action<T1, T2, T3> action, T1 o1, T2 o2, T3 o3, CancellationToken token,
@@ -41,15 +43,27 @@ namespace System.Threading.Tasks
         }
 
         [DebuggerStepThrough]
+        private static TResult InvokeFunc<TResult>(object o)
+        {
+            return ((Tuple<Func<TResult>>)o).Item1();
+        }
+
+        [DebuggerStepThrough]
         private static TResult InvokeFunc<T1, TResult>(object o)
         {
             return ((Tuple<Func<T1, TResult>, T1>) o).Item1(((Tuple<Func<T1, TResult>, T1>) o).Item2);
         }
 
         [DebuggerStepThrough]
-        private static TResult InvokeFunc<TResult>(object o)
+        private static TResult InvokeFunc<T1, T2, TResult>(object o)
         {
-            return ((Tuple<Func<TResult>>) o).Item1();
+            return ((Tuple<Func<T1, T2, TResult>, T1, T2>)o).Item1(((Tuple<Func<T1, T2, TResult>, T1, T2>)o).Item2, ((Tuple<Func<T1, T2, TResult>, T1, T2>)o).Item3);
+        }
+
+        [DebuggerStepThrough]
+        private static TResult InvokeFunc<T1, T2, T3, TResult>(object o)
+        {
+            return ((Tuple<Func<T1, T2, T3, TResult>, T1, T2, T3>)o).Item1(((Tuple<Func<T1, T2, T3, TResult>, T1, T2, T3>)o).Item2, ((Tuple<Func<T1, T2, T3, TResult>, T1, T2, T3>)o).Item3, ((Tuple<Func<T1, T2, T3, TResult>, T1, T2, T3>)o).Item4);
         }
 
         #region Task<TResult> Run<TResult>
@@ -122,10 +136,50 @@ namespace System.Threading.Tasks
         {
             var tuple = new Tuple<Func<T1, TResult>, T1>(func, o1);
 
-            return Task.Factory.StartNew((Func<object, TResult>) InvokeFunc<T1, TResult>, tuple, token, options,
+            return Task.Factory.StartNew((Func<object, TResult>)InvokeFunc<T1, TResult>, tuple, token, options,
                 taskScheduler);
         }
 
         #endregion
+
+        #region Task<TResult> Run<T1, T2, T3, TResult>
+
+        public static Task<TResult> Run<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> func, T1 o1, T2 o2, T3 o3)
+        {
+            var tuple = new Tuple<Func<T1, T2, T3, TResult>, T1, T2, T3>(func, o1, o2, o3);
+
+            return Task.Factory.StartNew((Func<object, TResult>)InvokeFunc<T1, T2, T3, TResult>, tuple, CancellationToken.None,
+                TaskCreationOptions.None, TaskScheduler.Default);
+        }
+
+        public static Task<TResult> Run<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> func, T1 o1, T2 o2, T3 o3, CancellationToken token)
+        {
+            var tuple = new Tuple<Func<T1, T2, T3, TResult>, T1, T2, T3>(func, o1, o2, o3);
+
+            return Task.Factory.StartNew((Func<object, TResult>)InvokeFunc<T1, T2, T3, TResult>, tuple, token,
+                TaskCreationOptions.None, TaskScheduler.Default);
+        }
+        
+        public static Task<TResult> Run<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> func, T1 o1, T2 o2, T3 o3, CancellationToken token,
+            TaskCreationOptions options)
+        {
+            var tuple = new Tuple<Func<T1, T2, T3, TResult>, T1, T2, T3>(func, o1, o2, o3);
+
+            return Task.Factory.StartNew((Func<object, TResult>)InvokeFunc<T1, T2, T3, TResult>, tuple, token, options,
+                TaskScheduler.Default);
+        }
+
+        public static Task<TResult> Run<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> func, T1 o1, T2 o2, T3 o3, CancellationToken token,
+            TaskCreationOptions options, TaskScheduler taskScheduler)
+        {
+            var tuple = new Tuple<Func<T1, T2, T3, TResult>, T1, T2, T3>(func, o1, o2, o3);
+
+            return Task.Factory.StartNew((Func<object, TResult>)InvokeFunc<T1, T2, T3, TResult>, tuple, token, options,
+                taskScheduler);
+        }
+
+        #endregion
+
+
     }
 }

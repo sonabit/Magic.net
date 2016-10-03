@@ -1,35 +1,37 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.IO.Pipes;
 using System.Linq;
 using System.ServiceModel.Channels;
+using System.Text;
 using JetBrains.Annotations;
 
 namespace Magic.Net
 {
-    internal abstract class ReadWriteStreamAdapter :  INetConnectionAdapter
+    internal abstract class ReadWriteStreamAdapter : INetConnectionAdapter
     {
-        #region Fields
-        private readonly byte[] _lenBuffer = new byte[sizeof(int)];
+        protected ReadWriteStreamAdapter([NotNull] Stream stream, [NotNull] BufferManager bufferManager)
+        {
+            _stream = stream;
+            _bufferManager = bufferManager;
+        }
 
-        private bool disposedValue = false; // Dient zur Erkennung redundanter Aufrufe.
+        #region Fields
+
+        private readonly byte[] _lenBuffer = new byte[sizeof (int)];
+
+        private bool _disposedValue; // Dient zur Erkennung redundanter Aufrufe.
         private readonly Stream _stream;
         private readonly BufferManager _bufferManager;
 
         #endregion Fields
 
-        protected ReadWriteStreamAdapter([NotNull]Stream stream,[NotNull] BufferManager bufferManager)
-        {
-            this._stream = stream;
-            this._bufferManager = bufferManager;
-        }
-
         #region Implementation of INetConnectionAdapter
+
+        public Encoding Encoding { get { return Encoding.UTF8; } }
 
         public abstract bool IsConnected { get; }
         public Uri RemoteAddress { get; protected set; }
-        
+
         public abstract void Open();
 
         public virtual void Close()
@@ -70,13 +72,13 @@ namespace Magic.Net
 
             //Debug.WriteLine("ReceiveFromStreamInternal " + (bytes1.Length + 4));
             var p = new NetDataPackage(bytes1);
-            return  p;
+            return p;
         }
 
         public void WriteData(params ArraySegment<byte>[] buffers)
         {
             // ReSharper disable once BuiltInTypeReferenceStyle
-            Int32 len = buffers.Sum(b => b.Count);
+            var len = buffers.Sum(b => b.Count);
             byte[] lenBuffer = _bufferManager.TakeBuffer(4);
 
             len.ToBuffer(lenBuffer);
@@ -95,7 +97,7 @@ namespace Magic.Net
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!_disposedValue)
             {
                 if (disposing)
                 {
@@ -105,7 +107,7 @@ namespace Magic.Net
                 // TODO: nicht verwaltete Ressourcen (nicht verwaltete Objekte) freigeben und Finalizer weiter unten überschreiben.
                 // TODO: große Felder auf Null setzen.
 
-                disposedValue = true;
+                _disposedValue = true;
             }
         }
 
@@ -123,6 +125,7 @@ namespace Magic.Net
             // TODO: Auskommentierung der folgenden Zeile aufheben, wenn der Finalizer weiter oben überschrieben wird.
             // GC.SuppressFinalize(this);
         }
+
         #endregion
 
         #endregion

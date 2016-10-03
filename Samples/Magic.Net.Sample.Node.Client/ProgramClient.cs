@@ -5,8 +5,8 @@ namespace Magic.Net.Sample.Node.Client
    
     internal sealed class ProgramClient : SimpleConsoleProgram
     {
-        // URI  magic://hostname:port/SystemName/ServiceType/MethodName?param1=value1,param2=ein%20wert
-        private static readonly Uri RemotePipeChannelUri = new Uri("magic://localhost:4242/TestSystem");
+        // URI  magic://hostname:port/direction/SystemName/ServiceType/MethodName?param1=value1,param2=ein%20wert
+        private static readonly Uri RemotePipeChannelUri = new Uri("magic://localhost:4242/remote/TestSystem");
 
         private NodeSystem _nodeSystem;
 
@@ -17,7 +17,7 @@ namespace Magic.Net.Sample.Node.Client
 
         protected override void Start(string[] args)
         {
-            _nodeSystem = new NodeSystem();
+            _nodeSystem = new NodeSystem(RemotePipeChannelUri);
 
             INetConnection connection = new NamedPipeNetConnection(RemotePipeChannelUri, _nodeSystem);
             _nodeSystem.AddConnection(connection);
@@ -27,9 +27,17 @@ namespace Magic.Net.Sample.Node.Client
             
             _nodeSystem.Start();
 
-            //string result2 = _nodeSystem.Exc2<IMyDataService, string>(RemotePipeChannelUri, proxy => proxy.RemoveDuplicates(wert, 6) );
+            //string result2 = _nodeSystem.Exc2<IMyDataService, string>(RemotePipeChannelUri, proxy => proxy.ReverseString(wert, 6) );
+            try
+            {
+                string result = _nodeSystem.Execute(RemotePipeChannelUri, () => Proxy<IMyDataService>.Target.ReverseString(wert, 6), 2000);
+                Console.WriteLine("Result: " + result);
+            }
+            catch (TimeoutException exception)
+            {
+                Console.WriteLine(exception.Message);
+            }
             
-            object result = _nodeSystem.Exc(RemotePipeChannelUri, () => Proxy<IMyDataService>.Target.RemoveDuplicates(wert, 6));
             
         }
 

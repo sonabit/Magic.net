@@ -2,6 +2,6 @@
 {
     public interface IMyDataService
     {
-        string RemoveDuplicates(MyData value, int startIndex);
+        string ReverseString(MyData value, int startIndex);
     }
 }

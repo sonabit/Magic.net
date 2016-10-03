@@ -12,26 +12,14 @@ namespace Magic.Net
         {
             var methodCallExpression = (MethodCallExpression)expression.Body;
 
-            var method = methodCallExpression.Method;
-            var parameterValues = methodCallExpression.Arguments.Select(a => a.GetArgumentValue()).ToArray();
-            var parameterInfos = methodCallExpression.Method.GetParameters().ToArray();
-
-            //new
-            //{
-            //    a.Type,
-            //    ((ConstantExpression)((MemberExpression)a).Expression).Value,
-            //    ((MemberExpression)a).Member.Name
-            //}).
-            //ToArray();
-
-
+            MethodInfo method = methodCallExpression.Method;
+            object[] parameterValues = methodCallExpression.Arguments.Select(a => a.GetArgumentValue()).ToArray();
+            ParameterInfo[] parameterInfos = methodCallExpression.Method.GetParameters().ToArray();
+            
             var serviceType = methodCallExpression.Method.DeclaringType;
-            //var value = argTypes[0].Value.GetType().GetField(argTypes[0].Name).GetValue(argTypes[0]);
-
 
             return new NetCommand(serviceType, method, parameterInfos, parameterValues);
         }
-
 
         private static object GetArgumentValue(this Expression argumentExpression)
         {
