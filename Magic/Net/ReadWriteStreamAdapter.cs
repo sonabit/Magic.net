@@ -31,6 +31,7 @@ namespace Magic.Net
 
         public abstract bool IsConnected { get; }
         public Uri RemoteAddress { get; protected set; }
+        public Uri LocalAddress { get; protected set; }
 
         public abstract void Open();
 

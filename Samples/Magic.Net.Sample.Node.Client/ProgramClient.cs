@@ -6,7 +6,7 @@ namespace Magic.Net.Sample.Node.Client
     internal sealed class ProgramClient : SimpleConsoleProgram
     {
         // URI  magic://hostname:port/direction/SystemName/ServiceType/MethodName?param1=value1,param2=ein%20wert
-        private static readonly Uri RemotePipeChannelUri = new Uri("magic://localhost:4242/remote/TestSystem");
+        private static readonly Uri RemotePipeChannelUri = new Uri("magic://fake-pc/TestSystem");
 
         private NodeSystem _nodeSystem;
 
@@ -17,7 +17,7 @@ namespace Magic.Net.Sample.Node.Client
 
         protected override void Start(string[] args)
         {
-            _nodeSystem = new NodeSystem(RemotePipeChannelUri);
+            _nodeSystem = new NodeSystem("TestSystem");
 
             INetConnection connection = new NamedPipeNetConnection(RemotePipeChannelUri, _nodeSystem);
             _nodeSystem.AddConnection(connection);

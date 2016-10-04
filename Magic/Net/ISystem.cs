@@ -7,7 +7,7 @@ namespace Magic.Net
 {
     public interface ISystem
     {
-        Uri SystemAddress { get; }
+        string SystemName { get; }
 
         BufferManager BufferManager { get; }
 

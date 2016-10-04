@@ -4,8 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
-using System.ServiceModel.Channels;
-using System.Text;
 using System.Threading;
 using JetBrains.Annotations;
 
@@ -16,18 +14,25 @@ namespace Magic.Net.Server
         private readonly ManualResetEventSlim _closeEvent = new ManualResetEventSlim(true);
         private readonly List<INetConnection> _connectionHosts = new List<INetConnection>();
         private readonly ManualResetEventSlim _connectionInLimitEvent = new ManualResetEventSlim(true);
+        private readonly MagicNetEndPoint _localEndPoint;
         private readonly ISystem _nodeSystem;
 
         private bool _disposedValue; // Dient zur Erkennung redundanter Aufrufe.
-        private readonly MagicNetEndPoint _localEndPoint;
 
-        public NamedPipeServerNetConnection([NotNull] Uri localAddress, ISystem nodeSystem)
+        public NamedPipeServerNetConnection([NotNull] ISystem nodeSystem)
         {
-            _localEndPoint = new MagicNetEndPoint(localAddress);
+            if (nodeSystem == null) throw new ArgumentNullException("nodeSystem");
+            _localEndPoint =
+                new MagicNetEndPoint(MagicNetEndPoint.BuildUri(Environment.MachineName, nodeSystem.SystemName));
             _nodeSystem = nodeSystem;
         }
 
         public Uri RemoteAddress
+        {
+            get { throw new NotSupportedException("This instance is a listener."); }
+        }
+
+        public Uri LocalAddress
         {
             get { throw new NotSupportedException("This instance is a listener."); }
         }
@@ -37,7 +42,10 @@ namespace Magic.Net.Server
             get { throw new NotSupportedException("This instance is a listener."); }
         }
 
-        public DataSerializeFormat DefaultSerializeFormat { get { return DataSerializeFormat.MsBinary;} }
+        public DataSerializeFormat DefaultSerializeFormat
+        {
+            get { return DataSerializeFormat.MsBinary; }
+        }
 
 
         public event EventHandler<INetConnection> ConnectionAccepted;
@@ -169,13 +177,14 @@ namespace Magic.Net.Server
 
             try
             {
-                NamedPipeClientHostAdapter adapter = new NamedPipeClientHostAdapter(stream, _localEndPoint.AsRemoteUri(), _nodeSystem.BufferManager);
+                var adapter = new NamedPipeClientHostAdapter(stream, _localEndPoint.OriginUri.AsLocalUri(),
+                    _nodeSystem.BufferManager);
                 adapter.Initialize();
 
                 var connection = new NetConnection(adapter, _nodeSystem, _nodeSystem.PackageHandler,
                     _nodeSystem.BufferManager);
 
-                Trace.WriteLine("NetCommandPipeServer: new StreamNetConnection");
+                Trace.WriteLine("NetCommandPipeServer: new StreamNetConnection ");
 
                 connection.Disconnected += HostOnDisconnected;
                 lock (_connectionHosts)
@@ -243,51 +252,6 @@ namespace Magic.Net.Server
         }
 
         #endregion
-
-        #endregion
-    }
-
-    internal sealed class NamedPipeClientHostAdapter : NamedPipeAdapter
-    {
-        [NotNull] private readonly NamedPipeServerStream _stream;
-        private readonly Uri _localAddress;
-
-        internal NamedPipeClientHostAdapter([NotNull] NamedPipeServerStream stream, Uri localAddress, [NotNull] BufferManager bufferManager)
-            : base(stream, bufferManager)
-        {
-            _stream = stream;
-            _localAddress = localAddress;
-        }
-        
-        internal void Initialize()
-        {
-            var data = ReadData();
-            if (data == null || data.PackageContentType != DataPackageContentType.ConnectionMetaData)
-            {
-                Dispose();
-                throw new NetCommandException(NetCommandExceptionReasonses.PackeContentTypeRejected,
-                    "The first have to be a DataPackageContentType.ConnectionMetaData");
-            }
-
-            if (data.PackageContentType == DataPackageContentType.ConnectionMetaData)
-            {
-                var uriString = Encoding.UTF8.GetString(data.Buffer.Array, data.Buffer.Offset, data.Buffer.Count);
-                RemoteAddress = new Uri(uriString);
-            }
-        }
-
-        #region Overrides of ReadWriteStreamAdapter
-
-        public override void Open()
-        {
-            throw new NotSupportedException();
-        }
-
-        public override void Close()
-        {
-            _stream.Disconnect();
-            base.Close();
-        }
 
         #endregion
     }

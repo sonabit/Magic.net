@@ -9,17 +9,18 @@ namespace Magic.Net
         Encoding Encoding { get; }
 
         bool IsConnected { get; }
+
         Uri RemoteAddress { get; }
 
-        //void Open(bool withOwnThread);
+        Uri LocalAddress { get; }
+
+        void Open();
 
         void Close();
         
         NetDataPackage ReadData();
 
         void WriteData(params ArraySegment<byte>[] buffers);
-
-        void Open();
     }
     
 }

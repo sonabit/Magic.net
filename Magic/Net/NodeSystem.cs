@@ -22,22 +22,22 @@ namespace Magic.Net
 
         private readonly DataPackageHandler _packageHandler;
         private bool _isRunning;
-        private readonly MagicNetEndPoint _systemEndPoint;
+        private readonly string _systemName;
 
         #endregion Fields
 
-        public NodeSystem([NotNull] Uri systemUri)
-            : this(systemUri, new ServiceCollection())
+        public NodeSystem([NotNull] string systemName)
+            : this(systemName, new ServiceCollection())
         {
         }
 
-        public NodeSystem([NotNull] Uri systemUri, [NotNull] IServiceProvider serviceProvider)
+        public NodeSystem([NotNull] string systemName, [NotNull] IServiceProvider serviceProvider)
         {
-            if (systemUri == null) throw new ArgumentNullException("systemUri");
             if (serviceProvider == null) throw new ArgumentNullException("serviceProvider");
+            if (string.IsNullOrWhiteSpace(systemName))
+                throw new ArgumentException("Argument is null or whitespace", "systemName");
 
-            _systemEndPoint = new MagicNetEndPoint(systemUri);
-
+            _systemName = systemName;
             _packageHandler = new DataPackageHandler(serviceProvider, _formatterCollection);
         }
 
@@ -184,9 +184,9 @@ namespace Magic.Net
             }
         }
 
-        public Uri SystemAddress
+        public string SystemName
         {
-            get { return _systemEndPoint.AsRemoteUri(); }
+            get { return _systemName; }
         }
 
         public BufferManager BufferManager
@@ -208,62 +208,5 @@ namespace Magic.Net
         {
             get { return default(TTarget); }
         }
-    }
-
-    [PublicAPI]
-    public sealed class MagicNetEndPoint
-    {
-        public const string SchemaPrefix = "magic://";
-
-        private readonly Uri _uri;
-
-        public MagicNetEndPoint([NotNull] Uri uri)
-        {
-            _uri = uri;
-            Direction =
-                (MagicNetEndPointDirection)
-                    Enum.Parse(typeof (MagicNetEndPointDirection), _uri.GetStringOfSegment(1), true);
-            SystemName = _uri.GetStringOfSegment(2);
-        }
-
-        public Uri OriginUri
-        {
-            get { return _uri; }
-        }
-
-        public string Host
-        {
-            get { return _uri.Host; }
-        }
-
-        public int Port
-        {
-            get { return _uri.Port; }
-        }
-
-        public MagicNetEndPointDirection Direction { get; private set; }
-
-        public string SystemName { get; private set; }
-
-        public static Uri BuildRemoteUri(string host, int port, string systemName)
-        {
-            return BuildBaseUri(host, port, MagicNetEndPointDirection.Remote, systemName);
-        }
-
-        public static Uri BuildBaseUri(string host, int port, MagicNetEndPointDirection direction, string systemName)
-        {
-            return new Uri(string.Format(SchemaPrefix + "{0}:{1}/{2}/{3}", host, port, direction, systemName));
-        }
-
-        public Uri AsRemoteUri()
-        {
-            return BuildRemoteUri(Host, Port, SystemName);
-        }
-    }
-
-    public enum MagicNetEndPointDirection
-    {
-        Local,
-        Remote
     }
 }

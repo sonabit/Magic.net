@@ -82,7 +82,7 @@ namespace Magic.Net
                 _connectionAdapter.Open();
             }
 
-            byte[] buffer = _connectionAdapter.Encoding.GetBytes(this.RemoteAddress.ToString());
+            byte[] buffer = _connectionAdapter.Encoding.GetBytes(this.LocalAddress.ToString());
 
             NetDataPackage package =
                 new NetDataPackage(
@@ -111,8 +111,13 @@ namespace Magic.Net
             get { return _connectionAdapter.RemoteAddress; }
         }
 
+        public Uri LocalAddress
+        {
+            get { return _connectionAdapter.LocalAddress; }
+        }
+
         #endregion INetConnection
-        
+
         internal void InitializeConnection(bool withNewThread = false)
         {
             BeginSending(withNewThread);

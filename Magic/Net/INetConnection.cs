@@ -8,6 +8,8 @@ namespace Magic.Net
 
         Uri RemoteAddress { get; }
 
+        Uri LocalAddress { get; }
+
         int TimeoutMilliseconds{ get; }
         DataSerializeFormat DefaultSerializeFormat { get; }
 

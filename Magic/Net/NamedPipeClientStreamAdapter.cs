@@ -16,6 +16,7 @@ namespace Magic.Net
             : base(stream, bufferManager)
         {
             this.RemoteAddress = remoteAddress;
+            this.LocalAddress = remoteAddress.AsLocalUri();
             _stream = stream;
         }
 
