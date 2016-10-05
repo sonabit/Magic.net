@@ -9,13 +9,61 @@ namespace Magic.Net
 {
     public sealed class DataPackageHandler : IDataPackageHandler
     {
+
+        #region Fields
+
+        private readonly ISerializeFormatterCollection _formatterCollection;
+        private readonly IServiceProvider _serviceProvider;
+        private Action<object> _commandResult;
         private const int version = 1;
+
+        #endregion Fields
+
 
         public DataPackageHandler(IServiceProvider serviceProvider, ISerializeFormatterCollection formatterCollection)
         {
             _serviceProvider = serviceProvider;
             _formatterCollection = formatterCollection;
         }
+
+        #region Implementation of IDataPackageHandler
+
+        public void ReceiveCommand([NotNull] RequestState requestState)
+        {
+            if (requestState == null) throw new ArgumentNullException("requestState");
+
+            while (!ThreadPool.QueueUserWorkItem(HandelReceivedCommandCallBack, requestState))
+            {
+                Trace.WriteLine("ThreadPool.QueueUserWorkItem unsuccessful");
+                Thread.Sleep(50);
+            }
+        }
+
+        public void ReceiveCommandStream([NotNull] RequestState package)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ReceiveCommandResult(RequestState requestState)
+        {
+            var commandResult =
+                _formatterCollection[requestState.Package.SerializeFormat].Deserialize<NetCommandResult>(
+                    requestState.Package.Buffer.Array, requestState.Package.Buffer.Offset);
+
+            if (_commandResult == null) return;
+
+            foreach (var subscriber in _commandResult.GetInvocationList())
+            {
+                var com = subscriber.Target as CommandResultAwait;
+                if (com != null && com.Id == commandResult.CommandId)
+                {
+                    subscriber.DynamicInvoke(commandResult.Result);
+                    break;
+                }
+            }
+        }
+
+        #endregion
 
         public event Action<object> CommandResult
         {
@@ -104,52 +152,5 @@ namespace Magic.Net
 
             #endregion Fields
         }
-
-        #region Fields
-
-        private readonly ISerializeFormatterCollection _formatterCollection;
-        private readonly IServiceProvider _serviceProvider;
-        private Action<object> _commandResult;
-
-        #endregion Fields
-
-        #region Implementation of IDataPackageHandler
-
-        public void ReceiveCommand([NotNull] RequestState requestState)
-        {
-            if (requestState == null) throw new ArgumentNullException("requestState");
-
-            while (!ThreadPool.QueueUserWorkItem(HandelReceivedCommandCallBack, requestState))
-            {
-                Trace.WriteLine("ThreadPool.QueueUserWorkItem unsuccessful");
-                Thread.Sleep(50);
-            }
-        }
-
-        public void ReceiveCommandStream([NotNull] RequestState package)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void ReceiveCommandResult(RequestState requestState)
-        {
-            var commandResult =
-                _formatterCollection[requestState.Package.SerializeFormat].Deserialize<NetCommandResult>(
-                    requestState.Package.Buffer.Array, requestState.Package.Buffer.Offset);
-
-            if (_commandResult == null) return;
-
-            foreach (var subscriber in _commandResult.GetInvocationList())
-            {
-                var com = subscriber.Target as CommandResultAwait;
-                if (com != null && com.Id == commandResult.CommandId)
-                {
-                    subscriber.DynamicInvoke(commandResult.Result);
-                    break;
-                }
-            }
-        }
-
-        #endregion
     }
 }
