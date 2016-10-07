@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using JetBrains.Annotations;
 using Magic.Net;
+using Magic.Net.Data;
 using Magic.Serialization;
 
 namespace Magic.Net

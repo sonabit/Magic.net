@@ -6,6 +6,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using FakeItEasy;
 using FakeItEasy.ExtensionSyntax.Full;
 using Magic.Net;
+using Magic.Net.Data;
 using NUnit.Framework;
 using NUnit.Magic.Net.Test.Helper;
 

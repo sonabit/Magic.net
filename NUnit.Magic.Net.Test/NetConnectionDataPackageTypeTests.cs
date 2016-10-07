@@ -1,6 +1,7 @@
 using System;
 using FakeItEasy;
 using Magic.Net;
+using Magic.Net.Data;
 using Magic.Serialization;
 using NUnit.Framework;
 using NUnit.Magic.Net.Test.Helper;

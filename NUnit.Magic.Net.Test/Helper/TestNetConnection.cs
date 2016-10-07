@@ -5,7 +5,7 @@ using Magic.Net;
 namespace NUnit.Magic.Net.Test.Helper
 {
 
-    public class TestNetConnection : NetConnection
+    internal class TestNetConnection : NetConnection
     {
         private static readonly BufferManager _bufferManager;
 
@@ -18,7 +18,7 @@ namespace NUnit.Magic.Net.Test.Helper
         {
         }
         
-        public void AddAddToReceivedDataQueue(NetDataPackage package)
+        internal void AddAddToReceivedDataQueue(NetDataPackage package)
         {
             AddToReceivedDataQueue(package);
         }

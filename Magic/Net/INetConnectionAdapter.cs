@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Magic.Net.Data;
 
 namespace Magic.Net
 {
@@ -18,7 +19,7 @@ namespace Magic.Net
 
         void Close();
         
-        NetDataPackage ReadData();
+        NetPackage ReadData();
 
         void WriteData(params ArraySegment<byte>[] buffers);
     }

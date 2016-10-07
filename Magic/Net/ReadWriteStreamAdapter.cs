@@ -4,6 +4,7 @@ using System.Linq;
 using System.ServiceModel.Channels;
 using System.Text;
 using JetBrains.Annotations;
+using Magic.Net.Data;
 using Magic.Serialization;
 
 namespace Magic.Net
@@ -49,7 +50,7 @@ namespace Magic.Net
         }
 
         [CanBeNull]
-        public NetDataPackage ReadData()
+        public NetPackage ReadData()
         {
             //Länge der zu empfangenden Daten lesen 4 bytes = int32
             var rlen = _stream.Read(_lenBuffer, 0, 4);

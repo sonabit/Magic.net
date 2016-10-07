@@ -8,6 +8,7 @@ using System.ServiceModel.Channels;
 using System.Threading;
 using JetBrains.Annotations;
 using Magic.Net;
+using Magic.Net.Data;
 using Magic.Serialization;
 
 namespace Magic.Net
@@ -148,7 +149,7 @@ namespace Magic.Net
                 try
                 {
                     var package = _connectionAdapter.ReadData();
-                    if (package != null && package.Buffer.ToArray().Length > 0)
+                    if (package != null && !package.IsEmpty)
                         AddToReceivedDataQueue(package);
                 }
                 catch (Exception)
@@ -230,7 +231,7 @@ namespace Magic.Net
                                                 serializeFormatter.Deserialize<T>(package.Buffer.Array, package.Buffer.Offset));
         }
 
-        protected void AddToReceivedDataQueue([NotNull] NetDataPackage buffer)
+        protected void AddToReceivedDataQueue([NotNull] NetPackage buffer)
         {
             _receivedDataQueue.Enqueue(buffer);
             _receivedDataResetEvent.Set();

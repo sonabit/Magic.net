@@ -1,9 +1,10 @@
 using System;
 using JetBrains.Annotations;
+using Magic.Net.Data;
 
 namespace Magic.Net
 {
-    public sealed class NetOjectPackage : NetPackage
+    internal sealed class NetOjectPackage : NetPackage
     {
         private readonly NetDataPackageHeader _header;
         private readonly object _data;

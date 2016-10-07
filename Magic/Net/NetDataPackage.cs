@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using Magic.Net.Data;
 
 namespace Magic.Net
 {
-    public class NetDataPackage : NetPackage
+    internal class NetDataPackage : NetPackage
     {
         #region Header
 

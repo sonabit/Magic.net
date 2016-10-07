@@ -3,7 +3,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
-using Magic.Net;
+using Magic.Net.Data;
 
 namespace Magic.Net
 {
