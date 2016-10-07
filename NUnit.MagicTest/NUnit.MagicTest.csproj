@@ -65,9 +65,6 @@
     <Compile Include="UriTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\magic.snk">
-      <Link>Properties\magic.snk</Link>
-    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
