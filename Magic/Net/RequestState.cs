@@ -2,16 +2,16 @@ namespace Magic.Net
 {
     public class RequestState
     {
-        private INetConnection _connetion;
-        private readonly NetDataPackage _package;
+        private readonly INetConnection _connetion;
+        private readonly NetOjectPackage _package;
 
-        public RequestState(INetConnection connection, NetDataPackage package)
+        public RequestState(INetConnection connection, NetOjectPackage package)
         {
             _connetion = connection;
             _package = package;
         }
 
         internal INetConnection Connetion { get { return _connetion; } }
-        internal NetDataPackage Package { get { return _package; } }
+        public NetOjectPackage Package { get { return _package; } }
     }
 }

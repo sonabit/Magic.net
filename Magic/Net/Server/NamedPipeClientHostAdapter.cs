@@ -11,8 +11,8 @@ namespace Magic.Net.Server
         [NotNull] private readonly NamedPipeServerStream _stream;
         private readonly Uri _localAddress;
 
-        internal NamedPipeClientHostAdapter([NotNull] NamedPipeServerStream stream, Uri localAddress, [NotNull] BufferManager bufferManager)
-            : base(stream, bufferManager)
+        internal NamedPipeClientHostAdapter([NotNull] NamedPipeServerStream stream, Uri localAddress, [NotNull] ISystem system)
+            : base(stream, system)
         {
             _stream = stream;
             _localAddress = localAddress;

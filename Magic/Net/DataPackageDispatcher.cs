@@ -1,5 +1,6 @@
 using System;
 using JetBrains.Annotations;
+using Magic.Net;
 
 namespace Magic.Net
 {
@@ -41,8 +42,12 @@ namespace Magic.Net
                 case DataPackageContentType.NetCommandResult:
                     _netCommandHandle.ReceiveCommandResult(requestState);
                     break;
-                case DataPackageContentType.NetCommandStream:
+                case DataPackageContentType.NetObjectStreamInitialize:
                     _netCommandHandle.ReceiveCommandStream(requestState);
+                    break;
+                case DataPackageContentType.NetObjectStreamData:
+                    throw new NotImplementedException();
+                    //_netCommandHandle.ReceiveCommandStream(requestState);
                     break;
                 default:
                     // this case should never happened

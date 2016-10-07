@@ -18,7 +18,7 @@ namespace Magic.Net
 
         [NotNull, ItemNotNull]
         private readonly List<INetConnection> _connections = new List<INetConnection>();
-        private readonly ISerializeFormatterCollection _formatterCollection = new DefaulSerializeFormatter();
+        private readonly ISerializeFormatterCollection _formatterCollection;
 
         private readonly DataPackageHandler _packageHandler;
         private bool _isRunning;
@@ -27,16 +27,22 @@ namespace Magic.Net
         #endregion Fields
 
         public NodeSystem([NotNull] string systemName)
-            : this(systemName, new ServiceCollection())
+            : this(systemName, new ServiceCollection(), new DefaulSerializeFormatter())
         {
         }
 
         public NodeSystem([NotNull] string systemName, [NotNull] IServiceProvider serviceProvider)
+            : this(systemName, serviceProvider, new DefaulSerializeFormatter())
+        {
+        }
+
+        public NodeSystem([NotNull] string systemName, [NotNull] IServiceProvider serviceProvider, ISerializeFormatterCollection formatterCollection)
         {
             if (serviceProvider == null) throw new ArgumentNullException("serviceProvider");
             if (string.IsNullOrWhiteSpace(systemName))
                 throw new ArgumentException("Argument is null or whitespace", "systemName");
 
+            _formatterCollection = formatterCollection;
             _systemName = systemName;
             _packageHandler = new DataPackageHandler(serviceProvider, _formatterCollection);
         }
@@ -143,7 +149,7 @@ namespace Magic.Net
                 header = new NetDataPackageHeader(1, DataPackageContentType.NetCommand, DataSerializeFormat.Magic);
             }
 
-            var s = _formatterCollection[header.SerializeFormat];
+            var s = _formatterCollection.GetFormatter(header.SerializeFormat);
             buffer = s.Serialize(command);
             var package = new NetDataPackage(header, buffer, 0, buffer.Length);
 
@@ -171,6 +177,8 @@ namespace Magic.Net
 
 
         #region Implementation of ISystem
+
+        public ISerializeFormatterCollection FormatterCollection { get { return _formatterCollection; } }
 
         public void AddConnection([NotNull] INetConnection connection)
         {

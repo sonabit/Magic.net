@@ -4,16 +4,12 @@ using System.Linq;
 using System.ServiceModel.Channels;
 using System.Text;
 using JetBrains.Annotations;
+using Magic.Serialization;
 
 namespace Magic.Net
 {
     internal abstract class ReadWriteStreamAdapter : INetConnectionAdapter
     {
-        protected ReadWriteStreamAdapter([NotNull] Stream stream, [NotNull] BufferManager bufferManager)
-        {
-            _stream = stream;
-            _bufferManager = bufferManager;
-        }
 
         #region Fields
 
@@ -21,9 +17,21 @@ namespace Magic.Net
 
         private bool _disposedValue; // Dient zur Erkennung redundanter Aufrufe.
         private readonly Stream _stream;
-        private readonly BufferManager _bufferManager;
+        private readonly ISystem _system;
 
         #endregion Fields
+
+        #region Ctors
+
+        protected ReadWriteStreamAdapter([NotNull] Stream stream, [NotNull] ISystem system)
+        {
+            if (stream == null) throw new ArgumentNullException("stream");
+            if (system == null) throw new ArgumentNullException("system");
+            _stream = stream;
+            _system = system;
+        }
+
+        #endregion Ctors
 
         #region Implementation of INetConnectionAdapter
 
@@ -57,22 +65,23 @@ namespace Magic.Net
 
             //eigentliche Daten lesen
             // Die Daten können aus mehreren Segmenten bestehen, der muss auf die Reihenfolge achten
-            var currentCount = 0;
-            var bytes1 = new byte[_len];
+            int currentCount = 0;
+            byte[] buffer = _system.BufferManager.TakeBuffer(_len);
             while (currentCount < _len)
             {
-                rlen = _stream.Read(bytes1, currentCount, _len - currentCount);
+                rlen = _stream.Read(buffer, currentCount, _len - currentCount);
                 currentCount += rlen;
                 if (rlen == 0)
                 {
-                    // Keine Daten, die Pipe wurde geschlossen oder irgendwas lief schief
+                    // Keine Daten, die Stream wurde geschlossen oder irgendwas lief schief
                     Dispose();
                     return null;
                 }
             }
 
             //Debug.WriteLine("ReceiveFromStreamInternal " + (bytes1.Length + 4));
-            var p = new NetDataPackage(bytes1);
+            
+            var p = new NetDataPackage(buffer);
             return p;
         }
 
@@ -80,11 +89,11 @@ namespace Magic.Net
         {
             // ReSharper disable once BuiltInTypeReferenceStyle
             var len = buffers.Sum(b => b.Count);
-            byte[] lenBuffer = _bufferManager.TakeBuffer(4);
+            byte[] lenBuffer = _system.BufferManager.TakeBuffer(4);
 
             len.ToBuffer(lenBuffer);
             _stream.Write(lenBuffer, 0, 4);
-            _bufferManager.ReturnBuffer(lenBuffer);
+            _system.BufferManager.ReturnBuffer(lenBuffer);
 
             foreach (ArraySegment<byte> arraySegment in buffers)
             {

@@ -1,4 +1,5 @@
 ﻿using System.ServiceModel.Channels;
+using JetBrains.Annotations;
 using Magic.Net;
 
 namespace NUnit.Magic.Net.Test.Helper
@@ -12,8 +13,8 @@ namespace NUnit.Magic.Net.Test.Helper
         {
             _bufferManager = BufferManager.CreateBufferManager(500 * 1024 *1024, 10 * 1024 *1024);
         }
-        public TestNetConnection(INetConnectionAdapter connectionAdapter, IDataPackageHandler dataPackageHandler) 
-            : base(connectionAdapter, null, dataPackageHandler, _bufferManager)
+        public TestNetConnection([NotNull]INetConnectionAdapter connectionAdapter, [NotNull]IDataPackageHandler dataPackageHandler, [NotNull]ISystem system) 
+            : base(connectionAdapter, system, dataPackageHandler, _bufferManager)
         {
         }
         

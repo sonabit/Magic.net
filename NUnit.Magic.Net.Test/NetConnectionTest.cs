@@ -19,7 +19,8 @@ namespace NUnit.Magic.Net.Test
         {
             IDataPackageHandler dataPackageHandler = A.Fake<IDataPackageHandler>();
             INetConnectionAdapter adapter = A.Fake<INetConnectionAdapter>();
-            TestNetConnection connection = new TestNetConnection(adapter, dataPackageHandler);
+            ISystem fakeSystem = new NodeSystem("UnitTestSystem");
+            TestNetConnection connection = new TestNetConnection(adapter, dataPackageHandler, fakeSystem);
             A.CallTo(() => adapter.IsConnected).Returns(true);
 
             byte[] buffer;

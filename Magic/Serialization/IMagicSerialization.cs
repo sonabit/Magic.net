@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Xml.Serialization;
+using JetBrains.Annotations;
 using Magic.Net;
 
 namespace Magic.Serialization
@@ -17,14 +18,15 @@ namespace Magic.Serialization
 
     public interface ISerializeFormatterCollection
     {
-        ISerializeFormatter this[DataSerializeFormat index] { get; }
-
         ISerializeFormatter GetFormatter(DataSerializeFormat index);
     }
 
     public interface ISerializeFormatter
     {
         TResult Deserialize<TResult>(byte[] bytes, long startPosition);
+
+        object Deserialize([NotNull] byte[] bytes, [NotNull] Type targeType, long startPosition);
+
         byte[] Serialize<TResult>(TResult value);
     }
 
@@ -34,13 +36,18 @@ namespace Magic.Serialization
 
         public TResult Deserialize<TResult>(byte[] bytes, long startPosition)
         {
-            TResult result = Activator.CreateInstance<TResult>();
+            return (TResult) Deserialize(bytes, typeof (TResult), startPosition);
+        }
+
+        public object Deserialize(byte[] bytes, Type targeType, long startPosition)
+        {
+            object result = Activator.CreateInstance(targeType);
 
             IMagicSerialization magicSerialization = result as IMagicSerialization;
             if (magicSerialization == null)
                 throw new SerializationException(
                     string.Format("The type {0} does not support the interface {1}",
-                        /*0*/ typeof(TResult).Name,
+                        /*0*/ targeType.Name,
                         /*1*/ typeof(IMagicSerialization).Name));
             using (MemoryStream mStream = new MemoryStream(bytes, false))
             {
@@ -80,11 +87,7 @@ namespace Magic.Serialization
             _formatters[DataSerializeFormat.MsBinary] = new GFormatter<BinaryFormatter>();
         }
 
-        public ISerializeFormatter this[DataSerializeFormat index]
-        {
-            get { return _formatters[index]; }
-        }
-
+        [NotNull]
         public ISerializeFormatter GetFormatter(DataSerializeFormat index)
         {
             return _formatters[index];
@@ -98,16 +101,25 @@ namespace Magic.Serialization
 
         public TResult Deserialize<TResult>(byte[] bytes, long startPosition)
         {
+            return (TResult) Deserialize(bytes, typeof (TResult), startPosition);
+        }
+
+        public object Deserialize([NotNull] byte[] bytes, [NotNull] Type targeType, long startPosition)
+        {
+            if (bytes == null) throw new ArgumentNullException("bytes");
+            if (targeType == null) throw new ArgumentNullException("targeType");
+            if (startPosition <= 0) throw new ArgumentOutOfRangeException("startPosition");
+
             IFormatter serializer;
-            if (!_serializers.TryGetValue(typeof(TResult), out serializer))
+            if (!_serializers.TryGetValue(targeType, out serializer))
             {
                 serializer = new TFormatter();
-                _serializers[typeof(TResult)] = serializer;
+                _serializers[targeType] = serializer;
             }
             using (MemoryStream stream = new MemoryStream(bytes, false))
             {
                 stream.Position = startPosition;
-                return (TResult) serializer.Deserialize(stream);
+                return serializer.Deserialize(stream);
             }
         }
 
@@ -133,17 +145,23 @@ namespace Magic.Serialization
 
         public TResult Deserialize<TResult>(byte[] bytes, long startPosition)
         {
+            return (TResult) Deserialize(bytes, typeof (TResult), startPosition);
+        }
+
+        public object Deserialize(byte[] bytes, Type targeType, long startPosition)
+        {
             XmlSerializer serializer;
-            if (!_serializers.TryGetValue(typeof(TResult), out serializer))
+            if (!_serializers.TryGetValue(targeType, out serializer))
             {
-                serializer = new XmlSerializer(typeof(TResult));
-                _serializers[typeof(TResult)] = serializer;
+                serializer = new XmlSerializer(targeType);
+                _serializers[targeType] = serializer;
             }
             using (MemoryStream stream = new MemoryStream(bytes, false))
             {
                 stream.Position = startPosition;
-                return (TResult) serializer.Deserialize(stream);
+                return serializer.Deserialize(stream);
             }
+
         }
 
         public byte[] Serialize<T>(T value)

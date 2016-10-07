@@ -1,5 +1,7 @@
+using System;
 using FakeItEasy;
 using Magic.Net;
+using Magic.Serialization;
 using NUnit.Framework;
 using NUnit.Magic.Net.Test.Helper;
 
@@ -15,7 +17,20 @@ namespace NUnit.Magic.Net.Test
         {
             _dataPackageHandler = A.Fake<IDataPackageHandler>();
             INetConnectionAdapter adapter = A.Fake<INetConnectionAdapter>();
-            _connection = new TestNetConnection(adapter, _dataPackageHandler);
+            ISerializeFormatterCollection formatterCollection = A.Fake<ISerializeFormatterCollection>();
+
+            ISerializeFormatter fakeMagicFormatter = A.Fake<ISerializeFormatter>();
+            A.CallTo(() => fakeMagicFormatter.Deserialize(A<byte[]>.Ignored, A<Type>.That.Matches(t => t == typeof(NetCommand)), A<long>.Ignored))
+                .Returns(new NetCommand());
+            A.CallTo(() => fakeMagicFormatter.Deserialize(A<byte[]>.Ignored, A<Type>.That.Matches(t => t == typeof(NetObjectStreamInitializeRequest)), A<long>.Ignored))
+                .Returns(new NetObjectStreamInitializeRequest());
+
+            A.CallTo(() => formatterCollection.GetFormatter(DataSerializeFormat.Magic)).Returns(fakeMagicFormatter);
+
+
+            ISystem fakeSystem = new NodeSystem("UnitTestSystem", new ServiceCollection(), formatterCollection);
+            
+            _connection = new TestNetConnection(adapter, _dataPackageHandler, fakeSystem);
             A.CallTo(() => adapter.IsConnected).Returns(true);
         }
 
@@ -32,22 +47,22 @@ namespace NUnit.Magic.Net.Test
         }
 
         [Test, Category("package type")]
-        public void When_DataPackage_Type_Is_1()
+        public void When_DataPackage_Type_Is_NetCommandResult()
         {
             var package = new NetDataPackage(new byte[] { 1, 1, 0, 0, 0 });
             _connection.AddAddToReceivedDataQueue(package);
             _connection.CallDequeueReceivedData();
-            A.CallTo(() => _dataPackageHandler.ReceiveCommand(A<RequestState>.Ignored)).MustHaveHappened(Repeated.AtLeast.Once);
+            A.CallTo(() => _dataPackageHandler.ReceiveCommand(A<RequestState>.That.Matches(state => state.Package.Data is NetCommand))).MustHaveHappened(Repeated.AtLeast.Once);
         }
 
         [Test, Category("package type")]
-        public void When_DataPackage_Type_Is_10()
+        public void When_DataPackage_Type_Is_NetObjectStreamInitialize()
         {
             var package = new NetDataPackage(new byte[] { 1, 10, 0, 0, 0 });
             _connection.AddAddToReceivedDataQueue(package);
             _connection.CallDequeueReceivedData();
 
-            A.CallTo(() => _dataPackageHandler.ReceiveCommandStream(A<RequestState>.Ignored)).MustHaveHappened(Repeated.AtLeast.Once);
+            A.CallTo(() => _dataPackageHandler.ReceiveCommandStream(A<RequestState>.That.Matches(state => state.Package.Data is NetObjectStreamInitializeRequest))).MustHaveHappened(Repeated.AtLeast.Once);
         }
     }
 }

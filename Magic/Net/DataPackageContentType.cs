@@ -9,7 +9,9 @@ namespace Magic.Net
     {
         NetCommand = 1,
         NetCommandResult = 2,
-        NetCommandStream = 10,
+        NetObjectStreamInitialize = 10,
+        NetObjectStreamData = 11,
+        NetObjectStreamClose = 12,
         ConnectionMetaData = 20
     }
 

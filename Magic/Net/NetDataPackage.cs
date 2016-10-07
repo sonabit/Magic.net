@@ -4,7 +4,7 @@ using JetBrains.Annotations;
 
 namespace Magic.Net
 {
-    public class NetDataPackage
+    public class NetDataPackage : NetPackage
     {
         #region Header
 
@@ -35,19 +35,18 @@ namespace Magic.Net
             get { return _buffer; }
         }
 
-        public bool IsEmpty { get { return Buffer.Count == 0; } }
+        public override bool IsEmpty { get { return Buffer.Count == 0; } }
 
-        public byte Version { get { return _header.Version; } }
+        public override byte Version { get { return _header.Version; } }
 
-        public DataPackageContentType PackageContentType { get { return _header.PackageContentType; } }
+        public override DataPackageContentType PackageContentType { get { return _header.PackageContentType; } }
 
-        public DataSerializeFormat SerializeFormat { get { return _header.SerializeFormat; } }
+        public override DataSerializeFormat SerializeFormat { get { return _header.SerializeFormat; } }
 
         public IEnumerable<ArraySegment<byte>> DataSegments()
         {
             yield return new ArraySegment<byte>(_header.ToBytes());
             yield return Buffer;
-        } 
-
+        }
     }
 }

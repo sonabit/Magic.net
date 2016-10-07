@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using JetBrains.Annotations;
+using Magic.Net;
 using Magic.Serialization;
 
 namespace Magic.Net
@@ -41,14 +42,12 @@ namespace Magic.Net
 
         public void ReceiveCommandStream([NotNull] RequestState package)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void ReceiveCommandResult(RequestState requestState)
         {
-            var commandResult =
-                _formatterCollection[requestState.Package.SerializeFormat].Deserialize<NetCommandResult>(
-                    requestState.Package.Buffer.Array, requestState.Package.Buffer.Offset);
+            NetCommandResult commandResult = (NetCommandResult)requestState.Package.Data;
 
             if (_commandResult == null) return;
 
@@ -81,9 +80,7 @@ namespace Magic.Net
         {
             if (requestState == null) throw new ArgumentNullException("requestState");
 
-            var command =
-                _formatterCollection[requestState.Package.SerializeFormat].Deserialize<NetCommand>(
-                    requestState.Package.Buffer.Array, requestState.Package.Buffer.Offset);
+            var command = (NetCommand)requestState.Package.Data;
 
             var service = _serviceProvider.GetService(command.ServiceType);
 
@@ -105,7 +102,7 @@ namespace Magic.Net
 
             var commandResult = new NetCommandResult(command.Id, result);
             var serializeFormat = requestState.Connetion.DefaultSerializeFormat;
-            var serializeFormatter = _formatterCollection[serializeFormat];
+            var serializeFormatter = _formatterCollection.GetFormatter(serializeFormat);
             byte[] buffer = serializeFormatter.Serialize(commandResult);
 
             var package =

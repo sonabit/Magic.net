@@ -16,7 +16,7 @@ namespace Magic.Net
             var pipe = new NamedPipeClientStream(endPoint.Host, endPoint.SystemName,
                 PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.WriteThrough);
 
-            return new NamedPipeClientStreamAdapter(pipe, endPoint.OriginUri, system.BufferManager);
+            return new NamedPipeClientStreamAdapter(pipe, endPoint.OriginUri, system);
         }
     }
 }

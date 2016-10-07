@@ -9,8 +9,8 @@ namespace Magic.Net
     {
         private readonly PipeStream _stream;
 
-        protected NamedPipeAdapter([NotNull] PipeStream stream, [NotNull] BufferManager bufferManager) 
-            : base(stream, bufferManager)
+        protected NamedPipeAdapter([NotNull] PipeStream stream, [NotNull] ISystem system) 
+            : base(stream, system)
         {
             _stream = stream;
         }

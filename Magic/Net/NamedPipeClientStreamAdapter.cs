@@ -12,8 +12,8 @@ namespace Magic.Net
         [NotNull]
         private readonly NamedPipeClientStream _stream;
 
-        public NamedPipeClientStreamAdapter([NotNull] NamedPipeClientStream stream, Uri remoteAddress, [NotNull] BufferManager bufferManager)
-            : base(stream, bufferManager)
+        public NamedPipeClientStreamAdapter([NotNull] NamedPipeClientStream stream, Uri remoteAddress, [NotNull] ISystem system)
+            : base(stream, system)
         {
             this.RemoteAddress = remoteAddress;
             this.LocalAddress = remoteAddress.AsLocalUri();

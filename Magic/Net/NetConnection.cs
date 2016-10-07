@@ -7,6 +7,8 @@ using System.Linq;
 using System.ServiceModel.Channels;
 using System.Threading;
 using JetBrains.Annotations;
+using Magic.Net;
+using Magic.Serialization;
 
 namespace Magic.Net
 {
@@ -19,7 +21,7 @@ namespace Magic.Net
         private readonly BufferManager _bufferManager;
         private static int[] _bufferFilter;
         private readonly IDataPackageDispatcher _dataPackageDispatcher;
-        private readonly ConcurrentQueue<NetDataPackage> _receivedDataQueue = new ConcurrentQueue<NetDataPackage>();
+        private readonly ConcurrentQueue<NetPackage> _receivedDataQueue = new ConcurrentQueue<NetPackage>();
         private readonly ConcurrentQueue<ArraySegment<byte>[]> _sendingQueue =
             new ConcurrentQueue<ArraySegment<byte>[]>();
 
@@ -181,13 +183,51 @@ namespace Magic.Net
         {
             while (!_receivedDataQueue.IsEmpty)
             {
-                NetDataPackage package;
+                NetPackage package;
                 if (!_receivedDataQueue.TryDequeue(out package))
                     break;
                 if (package.IsEmpty) continue;
 
-                _dataPackageDispatcher.Handle(new RequestState(this, package));
+                NetOjectPackage data = Deserialize(package);
+
+                _dataPackageDispatcher.Handle(new RequestState(this, data));
             }
+        }
+
+        private NetOjectPackage Deserialize(NetPackage package)
+        {
+            NetDataPackage dataPackage = package as NetDataPackage;
+            if (dataPackage != null)
+            {
+                switch (package.PackageContentType)
+                {
+                    case DataPackageContentType.NetCommand:
+                        return Deserialize<NetCommand>(dataPackage);
+                    case DataPackageContentType.NetCommandResult:
+                        return Deserialize<NetCommandResult>(dataPackage);
+                    case DataPackageContentType.NetObjectStreamInitialize:
+                        return Deserialize<NetObjectStreamInitializeRequest>(dataPackage);
+                    case DataPackageContentType.NetObjectStreamData:
+                        throw new NotImplementedException();
+                    case DataPackageContentType.NetObjectStreamClose:
+                        throw new NotImplementedException();
+                    case DataPackageContentType.ConnectionMetaData:
+                        throw new NotImplementedException();
+                    default:
+                        // this case should never happened
+                        throw new NetCommandException(NetCommandExceptionReasonses.UnknownPackageContentType,
+                            string.Format("PackageContentType {0} unknown.", package.PackageContentType));
+                }
+            }
+            return (NetOjectPackage) package;
+        }
+
+        private NetOjectPackage Deserialize<T>(NetDataPackage package)
+        {
+            ISerializeFormatter serializeFormatter = _system.FormatterCollection.GetFormatter(package.SerializeFormat);
+
+            return new NetOjectPackage(new NetDataPackageHeader(package.Version, package.PackageContentType, package.SerializeFormat),
+                                                serializeFormatter.Deserialize<T>(package.Buffer.Array, package.Buffer.Offset));
         }
 
         protected void AddToReceivedDataQueue([NotNull] NetDataPackage buffer)
@@ -215,17 +255,18 @@ namespace Magic.Net
         {
             if (withNewThread)
             {
-                new Thread(SendingInternal) { IsBackground = true }.Start();
+                new Thread(SendingInternal) {IsBackground = true}.Start();
             }
             else
             {
                 SendingInternal();
             }
         }
+
         private void SendingInternal()
         {
             ArraySegment<byte>[] buffers = null;
-            
+
             while (IsConnected)
             {
                 _processSendingWaiter.WaitOne();
@@ -268,11 +309,10 @@ namespace Magic.Net
                                 }
                                 catch (Exception exception)
                                 {
-                                    Trace.TraceError("Not enable to return buffer Length {0} : {1}", buffer.Array.Length,
-                                        exception.Message);
+                                    Trace.TraceError("Not enable to return buffer Length {0} : {1}", buffer.Array.Length, exception.Message);
                                 }
                         }
-                        
+
                         buffers = null;
 
                         if (_isDisposed) break;
