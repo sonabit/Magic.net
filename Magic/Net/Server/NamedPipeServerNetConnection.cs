@@ -14,17 +14,20 @@ namespace Magic.Net.Server
         private readonly ManualResetEventSlim _closeEvent = new ManualResetEventSlim(true);
         private readonly List<INetConnection> _connectionHosts = new List<INetConnection>();
         private readonly ManualResetEventSlim _connectionInLimitEvent = new ManualResetEventSlim(true);
-        private readonly MagicNetEndPoint _localEndPoint;
-        private readonly ISystem _nodeSystem;
+        private MagicNetEndPoint _localEndPoint;
+        private ISystem _nodeSystem;
 
         private bool _disposedValue; // Dient zur Erkennung redundanter Aufrufe.
-
-        public NamedPipeServerNetConnection([NotNull] ISystem nodeSystem)
+        private bool _isInitialized;
+        
+        public void LinkTo([NotNull]ISystem system)
         {
-            if (nodeSystem == null) throw new ArgumentNullException("nodeSystem");
-            _localEndPoint =
-                new MagicNetEndPoint(MagicNetEndPoint.BuildUri(Environment.MachineName, nodeSystem.SystemName));
-            _nodeSystem = nodeSystem;
+            if (system == null) throw new ArgumentNullException("system");
+
+            if (_isInitialized) return;
+            _isInitialized = true;
+            _localEndPoint = new MagicNetEndPoint(MagicNetEndPoint.BuildUri(Environment.MachineName, system.SystemName));
+            _nodeSystem = system;
         }
 
         public Uri RemoteAddress
@@ -177,11 +180,10 @@ namespace Magic.Net.Server
 
             try
             {
-                var adapter = new NamedPipeClientHostAdapter(stream, _localEndPoint.OriginUri.AsLocalUri(), _nodeSystem);
+                var adapter = new NamedPipeClientAdapterHost(stream, _localEndPoint.OriginUri.AsLocalUri(), _nodeSystem);
                 adapter.Initialize();
 
-                var connection = new NetConnection(adapter, _nodeSystem, _nodeSystem.PackageHandler,
-                    _nodeSystem.BufferManager);
+                NetConnection connection = new NetConnectionStreamHost(adapter);
 
                 Trace.WriteLine("NetCommandPipeServer: new StreamNetConnection ");
 
@@ -194,7 +196,7 @@ namespace Magic.Net.Server
 
                 OnConnectionAccepted(connection);
             }
-            catch (NetCommandException ex)
+            catch (NetException ex)
             {
                 // NetCommandException
                 Trace.WriteLine(string.Format("{0} - {1}: {2}", ex.GetType().Name, ex.Reasonses, ex.Message));

@@ -29,9 +29,10 @@ namespace NUnit.Magic.Net.Test
             A.CallTo(() => formatterCollection.GetFormatter(DataSerializeFormat.Magic)).Returns(fakeMagicFormatter);
 
 
-            ISystem fakeSystem = new NodeSystem("UnitTestSystem", new ServiceCollection(), formatterCollection);
+            ISystem fakeSystem = new NodeSystem("UnitTestSystem", formatterCollection, _dataPackageHandler);
             
-            _connection = new TestNetConnection(adapter, _dataPackageHandler, fakeSystem);
+            _connection = new TestNetConnection(adapter);
+            _connection.LinkTo(fakeSystem);
             A.CallTo(() => adapter.IsConnected).Returns(true);
         }
 
@@ -40,11 +41,11 @@ namespace NUnit.Magic.Net.Test
         {
             var buffer = new NetDataPackage(new byte[] { 1, 255, 0, 0, 0 });
             _connection.AddAddToReceivedDataQueue(buffer);
-            var exception = Assert.Throws<NetCommandException>(_connection.CallDequeueReceivedData);
+            var exception = Assert.Throws<NetException>(_connection.CallDequeueReceivedData);
 
             Assert.NotNull(exception);
             Assert.AreEqual("PackageContentType 255 unknown.", exception.Message);
-            Assert.AreEqual(NetCommandExceptionReasonses.UnknownPackageContentType, exception.Reasonses);
+            Assert.AreEqual(NetExceptionReasonses.UnknownPackageContentType, exception.Reasonses);
         }
 
         [Test, Category("package type")]

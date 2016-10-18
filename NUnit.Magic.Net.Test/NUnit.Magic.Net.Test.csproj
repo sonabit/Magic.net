@@ -65,6 +65,8 @@
     </Compile>
     <Compile Include="CommandTest.cs" />
     <Compile Include="Helper\TestNetConnection.cs" />
+    <Compile Include="Helper\TestStreamAdapter.cs" />
+    <Compile Include="HubTests.cs" />
     <Compile Include="NetCommandPackageTests.cs" />
     <Compile Include="NetConnectionDataPackageTypeTests.cs" />
     <Compile Include="NetConnectionTest.cs" />

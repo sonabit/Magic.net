@@ -16,9 +16,9 @@ namespace Magic.Net.Sample.Node.Server
 
             _nodeSystem = new NodeSystem("TestSystem", serviceCollection);
 
-            NamedPipeServerNetConnection pipeConnection = new NamedPipeServerNetConnection(_nodeSystem);
+            NamedPipeServerNetConnection pipeConnection = new NamedPipeServerNetConnection();
+            pipeConnection.LinkTo(_nodeSystem);
             pipeConnection.ConnectionAccepted += pipeConnectionOnConnectionAccepted;
-            _nodeSystem.AddConnection(pipeConnection);
             _nodeSystem.Start();
             
 

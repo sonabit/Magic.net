@@ -7,7 +7,7 @@ using Magic.Net.Data;
 
 namespace Magic.Net
 {
-    public static class LambdaExpressionExtension
+    public static class LambdaExpressionNetCommandExtension
     {
         public static INetCommand ToNetCommand([NotNull]this LambdaExpression expression)
         {

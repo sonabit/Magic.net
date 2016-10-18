@@ -8,6 +8,5 @@ namespace Magic.Net
 
         public abstract DataPackageContentType PackageContentType { get; }
 
-        public abstract DataSerializeFormat SerializeFormat { get; }
     }
 }

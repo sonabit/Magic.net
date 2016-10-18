@@ -1,7 +1,14 @@
+using System;
+
 namespace Magic.Net
 {
     public class NetDataPackageHeader
     {
+        public static NetDataPackageHeader CreateNetDataPackageHeader(DataPackageContentType packageContentType, DataSerializeFormat serializeFormat, byte version = 1)
+        {
+            return new NetDataPackageHeader(version, packageContentType, serializeFormat);
+        }
+
         private readonly int _headerLength;
 
         public NetDataPackageHeader(ref byte[] buffer)
@@ -26,7 +33,7 @@ namespace Magic.Net
             _headerLength = len;
         }
 
-        public NetDataPackageHeader(byte version, DataPackageContentType packageContentType, DataSerializeFormat serializeFormat)
+        private NetDataPackageHeader(byte version, DataPackageContentType packageContentType, DataSerializeFormat serializeFormat)
         {
             Version = version;
             PackageContentType = packageContentType;

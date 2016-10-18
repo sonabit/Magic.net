@@ -42,7 +42,7 @@ namespace Magic.Net
 
         public override DataPackageContentType PackageContentType { get { return _header.PackageContentType; } }
 
-        public override DataSerializeFormat SerializeFormat { get { return _header.SerializeFormat; } }
+        public DataSerializeFormat SerializeFormat { get { return _header.SerializeFormat; } }
 
         public IEnumerable<ArraySegment<byte>> DataSegments()
         {

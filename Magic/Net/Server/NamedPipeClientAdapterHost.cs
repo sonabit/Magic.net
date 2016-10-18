@@ -6,12 +6,12 @@ using JetBrains.Annotations;
 
 namespace Magic.Net.Server
 {
-    internal sealed class NamedPipeClientHostAdapter : NamedPipeAdapter
+    internal sealed class NamedPipeClientAdapterHost : NamedPipeAdapter
     {
         [NotNull] private readonly NamedPipeServerStream _stream;
         private readonly Uri _localAddress;
 
-        internal NamedPipeClientHostAdapter([NotNull] NamedPipeServerStream stream, Uri localAddress, [NotNull] ISystem system)
+        internal NamedPipeClientAdapterHost([NotNull] NamedPipeServerStream stream, Uri localAddress, [NotNull] ISystem system)
             : base(stream, system)
         {
             _stream = stream;
@@ -20,18 +20,19 @@ namespace Magic.Net.Server
         
         internal void Initialize()
         {
-            var data = ReadData();
-            if (data == null || data.PackageContentType != DataPackageContentType.ConnectionMetaData)
+            NetPackage data = ReadData();
+            NetDataPackage dataPackage = data as NetDataPackage;
+            if (dataPackage == null || dataPackage.PackageContentType != DataPackageContentType.ConnectionMetaData)
             {
                 Dispose();
-                throw new NetCommandException(NetCommandExceptionReasonses.PackeContentTypeRejected,
+                throw new NetException(NetExceptionReasonses.PackeContentTypeRejected,
                     "The first have to be a DataPackageContentType.ConnectionMetaData");
             }
 
-            if (data.PackageContentType == DataPackageContentType.ConnectionMetaData)
+            if (dataPackage.PackageContentType == DataPackageContentType.ConnectionMetaData)
             {
-                var uriString = Encoding.UTF8.GetString(data.Buffer.Array, data.Buffer.Offset, data.Buffer.Count);
-                RemoteAddress = new Uri(uriString);
+                var uriString = Encoding.UTF8.GetString(dataPackage.Buffer.Array, dataPackage.Buffer.Offset, dataPackage.Buffer.Count);
+                RemoteAddress = new Uri(uriString, UriKind.Relative);
             }
         }
 

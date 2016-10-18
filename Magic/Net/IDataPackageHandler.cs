@@ -9,10 +9,8 @@ namespace Magic.Net
     {
         void ReceiveCommand([NotNull]RequestState requestState); 
 
-        void ReceiveCommandStream([NotNull] RequestState package);
-
-        void ReceiveCommandResult([NotNull]RequestState requestState);
-
+        void ReceiveCommandStream([NotNull] RequestState request);
+        
         event Action<object> CommandResult;
     }
 }

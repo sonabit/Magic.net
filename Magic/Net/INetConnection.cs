@@ -1,9 +1,12 @@
 ﻿using System;
+using JetBrains.Annotations;
 
 namespace Magic.Net
 {
     public interface INetConnection
     {
+        void LinkTo([NotNull]ISystem system);
+
         bool IsConnected { get; }
 
         Uri RemoteAddress { get; }

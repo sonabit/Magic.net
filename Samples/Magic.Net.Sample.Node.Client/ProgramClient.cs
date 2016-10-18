@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Magic.Net.Sample.Node.Client
 {
@@ -6,7 +7,7 @@ namespace Magic.Net.Sample.Node.Client
     internal sealed class ProgramClient : SimpleConsoleProgram
     {
         // URI  magic://hostname:port/direction/SystemName/ServiceType/MethodName?param1=value1,param2=ein%20wert
-        private static readonly Uri RemotePipeChannelUri = new Uri("magic://fake-pc/TestSystem");
+        private static readonly Uri RemotePipeChannelUri = new Uri("magic://fake-pc/TestSystem", UriKind.Relative);
 
         private NodeSystem _nodeSystem;
 
@@ -17,12 +18,10 @@ namespace Magic.Net.Sample.Node.Client
 
         protected override void Start(string[] args)
         {
-            _nodeSystem = new NodeSystem("TestSystem");
+            _nodeSystem = new NodeSystem();
 
             INetConnection connection = new NamedPipeNetConnection(RemotePipeChannelUri, _nodeSystem);
-            _nodeSystem.AddConnection(connection);
-
-
+            
             MyData wert = new MyData() { Id = 666, Text = "gaaaannnnzzzzz viel Text" };
             
             _nodeSystem.Start();
@@ -37,8 +36,18 @@ namespace Magic.Net.Sample.Node.Client
             {
                 Console.WriteLine(exception.Message);
             }
-            
-            
+
+
+            IEnumerator<object> objects = _nodeSystem.CreateObjectStream<object>(RemotePipeChannelUri);
+
+            using (objects)
+            {
+                while (objects.MoveNext())
+                {
+                    Console.WriteLine(objects.Current);
+                }
+            }
+
         }
 
         protected override void Stop(string[] args)

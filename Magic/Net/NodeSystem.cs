@@ -6,11 +6,12 @@ using System.ServiceModel.Channels;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using Magic.Net.Data;
 using Magic.Serialization;
 
 namespace Magic.Net
 {
-    public sealed class NodeSystem : ISystem
+    public sealed class NodeSystem : ISystem, _ISender
     {
         #region Fields
 
@@ -20,11 +21,18 @@ namespace Magic.Net
         private readonly List<INetConnection> _connections = new List<INetConnection>();
         private readonly ISerializeFormatterCollection _formatterCollection;
 
-        private readonly DataPackageHandler _packageHandler;
+        private readonly IDataPackageHandler _packageHandler;
         private bool _isRunning;
         private readonly string _systemName;
+        private readonly ObjectStreamManager _objectStreamManager;
+        private readonly InternalServiceCollection _serviceCollectionProvider;
 
         #endregion Fields
+
+        public NodeSystem()
+            : this(Environment.MachineName, new ServiceCollection(), new DefaulSerializeFormatter())
+        {
+        }
 
         public NodeSystem([NotNull] string systemName)
             : this(systemName, new ServiceCollection(), new DefaulSerializeFormatter())
@@ -38,13 +46,35 @@ namespace Magic.Net
 
         public NodeSystem([NotNull] string systemName, [NotNull] IServiceProvider serviceProvider, ISerializeFormatterCollection formatterCollection)
         {
+            if (string.IsNullOrWhiteSpace(systemName))
+                throw new ArgumentException("Argument is null or whitespace", "systemName");
             if (serviceProvider == null) throw new ArgumentNullException("serviceProvider");
             if (string.IsNullOrWhiteSpace(systemName))
                 throw new ArgumentException("Argument is null or whitespace", "systemName");
 
+            _objectStreamManager = new ObjectStreamManager(formatterCollection);
             _formatterCollection = formatterCollection;
             _systemName = systemName;
-            _packageHandler = new DataPackageHandler(serviceProvider, _formatterCollection);
+            _serviceCollectionProvider = new InternalServiceCollection(serviceProvider);
+            _packageHandler = new DataPackageHandler(this, _serviceCollectionProvider, formatterCollection);
+            _serviceCollectionProvider[typeof(IObjectStreamService)] = typeof(ObjectStreamRemoteService);
+        }
+
+        /// <summary>
+        /// Only for Tests
+        /// </summary>
+        internal NodeSystem([NotNull] string systemName, ISerializeFormatterCollection formatterCollection,
+            [NotNull] IDataPackageHandler dataPackageHandler)
+        {
+            if (dataPackageHandler == null) throw new ArgumentNullException("dataPackageHandler");
+            if (string.IsNullOrWhiteSpace(systemName))
+                throw new ArgumentException("Argument is null or whitespace", "systemName");
+
+
+            _objectStreamManager = new ObjectStreamManager(formatterCollection);
+            _formatterCollection = formatterCollection;
+            _systemName = systemName;
+            _packageHandler = dataPackageHandler;
         }
 
         public void Start()
@@ -124,12 +154,12 @@ namespace Magic.Net
 
         private INetConnection FindConnection(Uri remoteAddress)
         {
+            string path = remoteAddress.GetLeftPart(UriPartial.Path);
+            INetConnection result = null;
             lock (_connections)
             {
-                string path = remoteAddress.GetLeftPart(UriPartial.Path);
 
-                return
-                    _connections.FirstOrDefault(
+                result = _connections.FirstOrDefault(
                         c =>
                             string.Equals(c.RemoteAddress.Host, remoteAddress.Host,
                                 StringComparison.InvariantCultureIgnoreCase)
@@ -137,16 +167,21 @@ namespace Magic.Net
                             && string.Equals(c.RemoteAddress.GetLeftPart(UriPartial.Path), path,
                                 StringComparison.InvariantCultureIgnoreCase));
             }
+            if (result == null)
+            {
+                throw new NetException(NetExceptionReasonses.NoConnectionFound, "No connection with remote address '"+remoteAddress+"' found.");
+            }
+            return result;
         }
 
         private TResult Execute<TResult>(INetConnection connection, INetCommand command, int imeoutMilliseconds)
         {
-            var header = new NetDataPackageHeader(1, DataPackageContentType.NetCommand, DataSerializeFormat.MsBinary);
+            var header = NetDataPackageHeader.CreateNetDataPackageHeader(DataPackageContentType.NetCommand, DataSerializeFormat.MsBinary);
             byte[] buffer = null;
             var magicSerialization = command as IMagicSerialization;
             if (magicSerialization != null)
             {
-                header = new NetDataPackageHeader(1, DataPackageContentType.NetCommand, DataSerializeFormat.Magic);
+                header = NetDataPackageHeader.CreateNetDataPackageHeader(DataPackageContentType.NetCommand, DataSerializeFormat.Magic);
             }
 
             var s = _formatterCollection.GetFormatter(header.SerializeFormat);
@@ -180,7 +215,7 @@ namespace Magic.Net
 
         public ISerializeFormatterCollection FormatterCollection { get { return _formatterCollection; } }
 
-        public void AddConnection([NotNull] INetConnection connection)
+        void ISystem.AddConnection([NotNull] INetConnection connection)
         {
             lock (_connections)
             {
@@ -207,14 +242,95 @@ namespace Magic.Net
             get { return _packageHandler; }
         }
 
-        #endregion
-    }
-
-    public static class Proxy<TTarget>
-    {
-        public static TTarget Target
+        public IEnumerator<T> CreateObjectStream<T>(Uri remoteAddress)
         {
-            get { return default(TTarget); }
+            return CreateObjectStream<T>(remoteAddress, Timeout.InfiniteTimeSpan);
         }
+
+        public IEnumerator<T> CreateObjectStream<T>(Uri remoteAddress, TimeSpan timeout)
+        {
+            INetConnection connection = FindConnection(remoteAddress);
+            
+            RemoteObjectStream<T> remoteObjectStream = this.Execute(remoteAddress, () => Proxy<IObjectStreamService>.Target.Create<T>(), Convert.ToInt32(timeout.TotalMilliseconds));
+            _objectStreamManager.Add(remoteObjectStream);
+
+            //ObjectStream<T> objectStream = _objectStreamManager.Create<T>(connection.RemoteAddress, Guid.NewGuid());
+            //ObjectStreamInfo info = new ObjectStreamInfo {State = ObjectStreamState.Creating};
+            //ISerializeFormatter serializeFormatter = _objectStreamManager.FormatterCollection.GetFormatter(connection.DefaultSerializeFormat);
+            //byte[] bytes = serializeFormatter.Serialize(info);
+            //NetDataPackage package = new NetDataPackage(NetDataPackageHeader.CreateNetDataPackageHeader(DataPackageContentType.NetObjectStreamInitialize,
+            //    connection.DefaultSerializeFormat), bytes, 0, bytes.Length);
+            //connection.Send(package.DataSegments().ToArray());
+
+            return remoteObjectStream;
+        }
+
+        #endregion
+
+        private class InternalServiceCollection : Dictionary<Type, object>, IServiceProvider
+        {
+            private readonly IServiceProvider _serviceProvider;
+
+            public InternalServiceCollection(IServiceProvider serviceProvider)
+            {
+                _serviceProvider = serviceProvider;
+            }
+
+            #region Implementation of IServiceProvider
+
+            public object GetService(Type serviceType)
+            {
+                object service;
+                if (this.TryGetValue(serviceType, out service))
+                {
+                    return GetInstance(service);
+                }
+                return _serviceProvider.GetService(serviceType);
+            }
+
+            #endregion
+            
+            private static object GetInstance(object service)
+            {
+                Type serviceType = service as Type;
+                if (serviceType != null)
+                {
+                    return Activator.CreateInstance(serviceType);
+                }
+                return service;
+            }
+        }
+
+        private interface IObjectStreamService
+        {
+            RemoteObjectStream<T> Create<T>();
+        }
+
+        private class ObjectStreamRemoteService : HubRemoteService, IObjectStreamService
+        {
+            #region Implementation of IObjectStreamService
+
+            public RemoteObjectStream<T> Create<T>()
+            {
+                RemoteObjectStream<T> result = new RemoteObjectStream<T>(new Uri(this.Connection.LocalAddress, Guid.NewGuid().ToString()));
+                return result;
+            }
+
+            #endregion
+        }
+
+        #region Implementation of _ISender
+
+        void _ISender.Send(object package)
+        {
+            throw new NotImplementedException();
+        }
+
+        IObjectStreamManager _ISender.ObjectStreamManager
+        {
+            get { return _objectStreamManager; }
+        }
+
+        #endregion
     }
 }

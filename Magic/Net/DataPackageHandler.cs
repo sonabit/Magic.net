@@ -3,67 +3,32 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using JetBrains.Annotations;
-using Magic.Net;
 using Magic.Net.Data;
 using Magic.Serialization;
 
 namespace Magic.Net
 {
-    public sealed class DataPackageHandler : IDataPackageHandler
+    internal sealed class DataPackageHandler : IDataPackageHandler
     {
-
         #region Fields
 
+        private readonly _ISender _hub;
         private readonly ISerializeFormatterCollection _formatterCollection;
         private readonly IServiceProvider _serviceProvider;
         private Action<object> _commandResult;
-        private const int version = 1;
 
         #endregion Fields
 
-
-        public DataPackageHandler(IServiceProvider serviceProvider, ISerializeFormatterCollection formatterCollection)
+        public DataPackageHandler([NotNull] _ISender hub, [NotNull] IServiceProvider serviceProvider, [NotNull] ISerializeFormatterCollection formatterCollection)
         {
-            _serviceProvider = serviceProvider;
+            if (hub == null) throw new ArgumentNullException("hub");
+            if (serviceProvider == null) throw new ArgumentNullException("serviceProvider");
+            if (formatterCollection == null) throw new ArgumentNullException("formatterCollection");
+
+            _hub = hub;
             _formatterCollection = formatterCollection;
+            _serviceProvider = serviceProvider;
         }
-
-        #region Implementation of IDataPackageHandler
-
-        public void ReceiveCommand([NotNull] RequestState requestState)
-        {
-            if (requestState == null) throw new ArgumentNullException("requestState");
-
-            while (!ThreadPool.QueueUserWorkItem(HandelReceivedCommandCallBack, requestState))
-            {
-                Trace.WriteLine("ThreadPool.QueueUserWorkItem unsuccessful");
-                Thread.Sleep(50);
-            }
-        }
-
-        public void ReceiveCommandStream([NotNull] RequestState package)
-        {
-            //throw new NotImplementedException();
-        }
-
-        public void ReceiveCommandResult(RequestState requestState)
-        {
-            NetCommandResult commandResult = (NetCommandResult)requestState.Package.Data;
-
-            if (_commandResult == null) return;
-
-            foreach (var subscriber in _commandResult.GetInvocationList())
-            {
-                var com = subscriber.Target as CommandResultAwait;
-                if (com != null && com.Id == commandResult.CommandId)
-                {
-                    subscriber.DynamicInvoke(commandResult.Result);
-                    break;
-                }
-            }
-        }
-
-        #endregion
 
         public event Action<object> CommandResult
         {
@@ -81,14 +46,19 @@ namespace Magic.Net
         {
             if (requestState == null) throw new ArgumentNullException("requestState");
 
-            var command = (NetCommand)requestState.Package.Data;
+            var command = (NetCommand) requestState.Package.Data;
 
-            var service = _serviceProvider.GetService(command.ServiceType);
+            object serviceInstance = _serviceProvider.GetService(command.ServiceType);
+            HubRemoteService hubRemoteService = serviceInstance as HubRemoteService;
+            if (hubRemoteService != null)
+            {
+                hubRemoteService.Connection = requestState.Connetion;
+            }
 
             object result;
             try
             {
-                result = command.MethodName.Invoke(service, command.ParameterValues);
+                result = command.MethodName.Invoke(serviceInstance, command.ParameterValues);
             }
             catch (Exception ex)
             {
@@ -108,8 +78,8 @@ namespace Magic.Net
 
             var package =
                 new NetDataPackage(
-                    new NetDataPackageHeader(version, DataPackageContentType.NetCommandResult, serializeFormat),
-                    buffer, 0, buffer.Length);
+                    NetDataPackageHeader.CreateNetDataPackageHeader(DataPackageContentType.NetCommandResult, serializeFormat), buffer,
+                    0, buffer.Length);
 
             requestState.Connetion.Send(package.DataSegments().ToArray());
         }
@@ -150,5 +120,102 @@ namespace Magic.Net
 
             #endregion Fields
         }
+
+        #region Implementation of IDataPackageHandler
+
+        public void ReceiveCommand([NotNull] RequestState requestState)
+        {
+            if (requestState == null) throw new ArgumentNullException("requestState");
+
+            while (!ThreadPool.QueueUserWorkItem(HandelReceivedCommandCallBack, requestState))
+            {
+                Trace.WriteLine("ThreadPool.QueueUserWorkItem unsuccessful");
+                Thread.Sleep(50);
+            }
+        }
+
+        public void ReceiveCommandStream([NotNull] RequestState request)
+        {
+            switch (request.Package.PackageContentType)
+            {
+                case DataPackageContentType.NetCommand:
+                    ReceiveCommand(request);
+                    break;
+                case DataPackageContentType.NetCommandResult:
+                    ReceiveCommandResult(request);
+                    break;
+                case DataPackageContentType.NetObjectStreamInitialize:
+                    InitializeNewObjectStream(request);
+                    break;
+                case DataPackageContentType.NetObjectStreamData:
+                    HandelNetObjectStreamData(request);
+                    break;
+                case DataPackageContentType.NetObjectStreamClose:
+                    break;
+                case DataPackageContentType.ConnectionMetaData:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        private void InitializeNewObjectStream(RequestState request)
+        {
+            ObjectStreamInfo info = request.Package.Data as ObjectStreamInfo;
+            if (info != null && info.State == Data.ObjectStreamState.Creating)
+            {
+                //ObjectStream objectStream = _objectStreamManager.Create(request.Connetion.RemoteAddress, info.StreamId);
+                //info.State = ObjectStreamState.Established;
+                //ISerializeFormatter serializeFormatter = _objectStreamManager.FormatterCollection.GetFormatter(request.Package.SerializeFormat);
+                //byte[] bytes = serializeFormatter.Serialize(info);
+                //NetDataPackage package = new NetDataPackage(NetDataPackageHeader.CreateNetDataPackageHeader(DataPackageContentType.NetObjectStreamInitialize,
+                //    request.Package.SerializeFormat), bytes, 0, bytes.Length);
+                //request.Connetion.Send(package.DataSegments().ToArray());
+                
+            }
+        }
+
+        private void HandelNetObjectStreamData(RequestState requestState)
+        {
+            NetObjectStreamData streamData = requestState.Package.Data as NetObjectStreamData;
+            if (streamData != null)
+            {
+                ObjectStream objectStream =
+                    _hub.ObjectStreamManager.GetObjectStream(
+                        requestState.Connetion.RemoteAddress.AddPath(streamData.Id.ToString()));
+                if (objectStream != null)
+                {
+                    objectStream.Push(streamData.Data);
+                    return;
+                }
+            }
+            Console.Error.WriteLine("Drop " + typeof(NetObjectStreamData) + ", " + typeof(ObjectStream) +"  not found.");
+        }
+
+        private void ReceiveCommandResult(RequestState requestState)
+        {
+            NetCommandResult commandResult = (NetCommandResult) requestState.Package.Data;
+
+            if (_commandResult == null) return;
+
+            Delegate[] delegates = _commandResult.GetInvocationList()
+                .Where(
+                    s => s.Target is CommandResultAwait && ((CommandResultAwait) s.Target).Id == commandResult.CommandId).ToArray();
+            if (delegates.Length == 0)
+            {
+                Debug.WriteLine(string.Format("DataPackageHandler.ReceiveCommandResult CommandId {0} not found.", commandResult.CommandId));
+                return;
+            }
+            foreach (var subscriber in delegates)
+            {
+                CommandResultAwait com = subscriber.Target as CommandResultAwait;
+                if (com != null && com.Id == commandResult.CommandId)
+                {
+                    subscriber.DynamicInvoke(commandResult.Result);
+                }
+            }
+        }
+
+        #endregion
     }
 }

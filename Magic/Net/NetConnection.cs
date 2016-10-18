@@ -13,15 +13,15 @@ using Magic.Serialization;
 
 namespace Magic.Net
 {
-    public class NetConnection : INetConnection
+    public abstract class NetConnection : INetConnection
     {
         #region Fields
 
-        private readonly INetConnectionAdapter _connectionAdapter;
-        private readonly ISystem _system;
-        private readonly BufferManager _bufferManager;
+        private INetConnectionAdapter _connectionAdapter;
+        private ISystem _system;
+        private BufferManager _bufferManager;
         private static int[] _bufferFilter;
-        private readonly IDataPackageDispatcher _dataPackageDispatcher;
+        private IDataPackageDispatcher _dataPackageDispatcher;
         private readonly ConcurrentQueue<NetPackage> _receivedDataQueue = new ConcurrentQueue<NetPackage>();
         private readonly ConcurrentQueue<ArraySegment<byte>[]> _sendingQueue =
             new ConcurrentQueue<ArraySegment<byte>[]>();
@@ -29,6 +29,10 @@ namespace Magic.Net
         private readonly AutoResetEvent _receivedDataResetEvent = new AutoResetEvent(false);
         private readonly AutoResetEvent _processSendingWaiter = new AutoResetEvent(false);
         private bool _isDisposed = false;
+        private bool _isInitialized;
+        private bool _isReading;
+        private bool _isSending;
+
         // ReSharper disable once InconsistentNaming
         private event Action<INetConnection> _disconnected;
         
@@ -36,18 +40,28 @@ namespace Magic.Net
 
         #region Ctros
 
-        public NetConnection(INetConnectionAdapter connectionAdapter, ISystem system, IDataPackageHandler dataPackageHandler, BufferManager bufferManager)
+        protected NetConnection()
         {
             TimeoutMilliseconds = Timeout.Infinite;
-            _connectionAdapter = connectionAdapter;
-            _system = system;
-            _bufferManager = bufferManager;
-            _dataPackageDispatcher = new DataPackageDispatcher(dataPackageHandler);
         }
 
         #endregion  Ctros
 
         #region INetConnection
+
+        public void LinkTo(ISystem system)
+        {
+            if (_isInitialized) return;
+            _isInitialized = true;
+
+            _system = system;
+            _bufferManager = system.BufferManager;
+            _dataPackageDispatcher = new DataPackageDispatcher(system.PackageHandler);
+
+            _connectionAdapter = this.CreateAdapter(_system);
+
+            _system.AddConnection(this);
+        }
 
         public event Action<INetConnection> Disconnected
         {
@@ -83,17 +97,19 @@ namespace Magic.Net
             if (!_connectionAdapter.IsConnected)
             {
                 _connectionAdapter.Open();
+
+
+                byte[] buffer = _connectionAdapter.Encoding.GetBytes(this.LocalAddress.ToString());
+
+                NetDataPackage package =
+                    new NetDataPackage(
+                        NetDataPackageHeader.CreateNetDataPackageHeader(DataPackageContentType.ConnectionMetaData,
+                            DataSerializeFormat.Custom),
+                        buffer, 0, buffer.Length);
+
+                this.Send(package.DataSegments().ToArray());
             }
 
-            byte[] buffer = _connectionAdapter.Encoding.GetBytes(this.LocalAddress.ToString());
-
-            NetDataPackage package =
-                new NetDataPackage(
-                    new NetDataPackageHeader(1, DataPackageContentType.ConnectionMetaData, DataSerializeFormat.Custom),
-                    buffer, 0, buffer.Length);
-
-            this.Send(package.DataSegments().ToArray());
-            
             InitializeConnection(true);
         }
 
@@ -106,7 +122,7 @@ namespace Magic.Net
 
         public bool IsConnected
         {
-            get { return _connectionAdapter.IsConnected; }
+            get { return _isSending && _isReading && _connectionAdapter.IsConnected; }
         }
 
         public Uri RemoteAddress
@@ -120,6 +136,8 @@ namespace Magic.Net
         }
 
         #endregion INetConnection
+
+        protected abstract INetConnectionAdapter CreateAdapter(ISystem system);
 
         internal void InitializeConnection(bool withNewThread = false)
         {
@@ -144,11 +162,13 @@ namespace Magic.Net
 
         private void ReadDataInternal()
         {
+            if (_isReading) return;
+            _isReading = true;
             while (_connectionAdapter.IsConnected)
             {
                 try
                 {
-                    var package = _connectionAdapter.ReadData();
+                    NetPackage package = _connectionAdapter.ReadData();
                     if (package != null && !package.IsEmpty)
                         AddToReceivedDataQueue(package);
                 }
@@ -158,6 +178,7 @@ namespace Magic.Net
                         break;
                 }
             }
+            _isReading = false;
         }
 
         private void ProcessingReceivedDataQueueInternal()
@@ -195,6 +216,7 @@ namespace Magic.Net
             }
         }
 
+        [NotNull]
         private NetOjectPackage Deserialize(NetPackage package)
         {
             NetDataPackage dataPackage = package as NetDataPackage;
@@ -216,18 +238,19 @@ namespace Magic.Net
                         throw new NotImplementedException();
                     default:
                         // this case should never happened
-                        throw new NetCommandException(NetCommandExceptionReasonses.UnknownPackageContentType,
+                        throw new NetException(NetExceptionReasonses.UnknownPackageContentType,
                             string.Format("PackageContentType {0} unknown.", package.PackageContentType));
                 }
             }
-            return (NetOjectPackage) package;
+            NetOjectPackage result = (NetOjectPackage) package;
+            return result;
         }
 
         private NetOjectPackage Deserialize<T>(NetDataPackage package)
         {
             ISerializeFormatter serializeFormatter = _system.FormatterCollection.GetFormatter(package.SerializeFormat);
 
-            return new NetOjectPackage(new NetDataPackageHeader(package.Version, package.PackageContentType, package.SerializeFormat),
+            return new NetOjectPackage(NetDataPackageHeader.CreateNetDataPackageHeader(package.PackageContentType, package.SerializeFormat, package.Version),
                                                 serializeFormatter.Deserialize<T>(package.Buffer.Array, package.Buffer.Offset));
         }
 
@@ -266,6 +289,9 @@ namespace Magic.Net
 
         private void SendingInternal()
         {
+            if (_isSending) return;
+            _isSending = true;
+
             ArraySegment<byte>[] buffers = null;
 
             while (IsConnected)
@@ -292,6 +318,7 @@ namespace Magic.Net
                                 break;
                             }
                         }
+                        
                         if (!_sendingQueue.TryDequeue(out buffers)) //&& buffers != null
                         {
                             var spin = new SpinWait();
@@ -301,18 +328,7 @@ namespace Magic.Net
                             }
                         }
 
-                        foreach (ArraySegment<byte> buffer in buffers)
-                        {
-                            if (Array.IndexOf(BufferFilter, buffer.Array.Length) > -1)
-                                try
-                                {
-                                    _bufferManager.ReturnBuffer(buffer.Array);
-                                }
-                                catch (Exception exception)
-                                {
-                                    Trace.TraceError("Not enable to return buffer Length {0} : {1}", buffer.Array.Length, exception.Message);
-                                }
-                        }
+                        ReturnBuffers(buffers);
 
                         buffers = null;
 
@@ -320,8 +336,24 @@ namespace Magic.Net
                     }
                 }
             }
-
+            _isSending = false;
             AbortedSending(buffers);
+        }
+
+        private void ReturnBuffers(IEnumerable<ArraySegment<byte>> buffers)
+        {
+            foreach (ArraySegment<byte> buffer in buffers)
+            {
+                if (Array.IndexOf(BufferFilter, buffer.Array.Length) > -1)
+                    try
+                    {
+                        _bufferManager.ReturnBuffer(buffer.Array);
+                    }
+                    catch (Exception exception)
+                    {
+                        Trace.TraceError("Not enable to return buffer Length {0} : {1}", buffer.Array.Length, exception.Message);
+                    }
+            }
         }
 
         private void AbortedSending(ArraySegment<byte>[] buffers)

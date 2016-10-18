@@ -5,18 +5,25 @@ namespace Magic.Net
 {
     public sealed class NamedPipeNetConnection : NetConnection
     {
+        private readonly Uri _remoteAddress;
+
         public NamedPipeNetConnection(Uri remoteAddress, ISystem system)
-            : base(CreateConnectionAdapter(remoteAddress, system), system, system.PackageHandler, system.BufferManager)
+            : base()
         {
+            _remoteAddress = remoteAddress;
         }
 
-        private static INetConnectionAdapter CreateConnectionAdapter(Uri remoteAddress, ISystem system)
+        #region Overrides of NetConnection
+
+        protected override INetConnectionAdapter CreateAdapter(ISystem system)
         {
-            var endPoint = new MagicNetEndPoint(remoteAddress);
+            var endPoint = new MagicNetEndPoint(_remoteAddress);
             var pipe = new NamedPipeClientStream(endPoint.Host, endPoint.SystemName,
                 PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.WriteThrough);
 
             return new NamedPipeClientStreamAdapter(pipe, endPoint.OriginUri, system);
         }
+
+        #endregion
     }
 }

@@ -41,18 +41,17 @@ namespace Magic.Net
                     _netCommandHandle.ReceiveCommand(requestState);
                     break;
                 case DataPackageContentType.NetCommandResult:
-                    _netCommandHandle.ReceiveCommandResult(requestState);
+                    _netCommandHandle.ReceiveCommandStream(requestState);
                     break;
                 case DataPackageContentType.NetObjectStreamInitialize:
                     _netCommandHandle.ReceiveCommandStream(requestState);
                     break;
                 case DataPackageContentType.NetObjectStreamData:
-                    throw new NotImplementedException();
-                    //_netCommandHandle.ReceiveCommandStream(requestState);
+                    _netCommandHandle.ReceiveCommandStream(requestState);
                     break;
                 default:
                     // this case should never happened
-                    throw new NetCommandException(NetCommandExceptionReasonses.UnknownPackageContentType,
+                    throw new NetException(NetExceptionReasonses.UnknownPackageContentType,
                         string.Format("PackageContentType {0} unknown.", requestState.Package.PackageContentType));
             }
         }

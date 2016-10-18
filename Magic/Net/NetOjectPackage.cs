@@ -23,9 +23,7 @@ namespace Magic.Net
         public override byte Version { get { return _header.Version; } }
 
         public override DataPackageContentType PackageContentType { get { return _header.PackageContentType; } }
-
-        public override DataSerializeFormat SerializeFormat { get { return _header.SerializeFormat; } }
-
+        
         public object Data { get { return _data; } }
     }
 }

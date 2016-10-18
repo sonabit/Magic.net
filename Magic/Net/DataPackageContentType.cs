@@ -1,6 +1,4 @@
-﻿using JetBrains.Annotations;
-
-namespace Magic.Net
+﻿namespace Magic.Net
 {
     /// <summary>
     ///     Specifies a data package of NetConnection
@@ -10,19 +8,8 @@ namespace Magic.Net
         NetCommand = 1,
         NetCommandResult = 2,
         NetObjectStreamInitialize = 10,
-        NetObjectStreamData = 11,
-        NetObjectStreamClose = 12,
+        NetObjectStreamData = 12,
+        NetObjectStreamClose = 11,
         ConnectionMetaData = 20
-    }
-
-    [PublicAPI]
-    public enum DataSerializeFormat : byte
-    {
-        Magic = 0,
-        MsXml = 1,
-        MsBinary = 2,
-        Json = 3,
-
-        Custom = byte.MaxValue,
     }
 }
