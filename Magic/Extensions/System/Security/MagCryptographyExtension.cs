@@ -1,8 +1,11 @@
-﻿
+﻿using JetBrains.Annotations;
+
+// ReSharper disable once CheckNamespace
 namespace System.Security.Cryptography
 {
     using System.IO;
 
+    [PublicAPI]
     public static class MagCryptographyExtension
     {
         /// <summary>

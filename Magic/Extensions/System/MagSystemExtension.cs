@@ -1,7 +1,7 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+// ReSharper disable once CheckNamespace
 namespace System
 {
     public static class MagSystemExtension
@@ -36,7 +36,7 @@ namespace System
         /// </summary>
         /// <param name="bytes">bytes to convert</param>
         /// <returns>A Hex String</returns>
-        public static string ToHexString(this IEnumerable<byte> bytes)
+        public static string ToHexString(this byte[] bytes)
         {
             if (bytes == null) throw new ArgumentNullException("bytes");
 

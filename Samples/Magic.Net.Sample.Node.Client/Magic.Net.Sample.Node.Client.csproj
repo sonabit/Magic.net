@@ -34,7 +34,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>Magic.Net.Sample.Node.Client.ProgramClient</StartupObject>
+    <StartupObject>
+    </StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="JetBrains.Annotations, Version=10.0.0.0, Culture=neutral, PublicKeyToken=1010a0d8d6380325, processorArchitecture=MSIL">
@@ -62,13 +63,13 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Magic.Net.Sample.Node.Helper\Magic.Net.Sample.Node.Helper.csproj">
-      <Project>{3B518A73-1C44-44D3-BB45-84A29E0C49B3}</Project>
-      <Name>Magic.Net.Sample.Node.Helper</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Magic\Magic.csproj">
       <Project>{D835B407-6ED1-402D-B34D-8F46A81A5DDD}</Project>
       <Name>Magic</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Magic.Net.Sample.Node.Helper\Magic.Net.Sample.Node.Helper.csproj">
+      <Project>{3B518A73-1C44-44D3-BB45-84A29E0C49B3}</Project>
+      <Name>Magic.Net.Sample.Node.Helper</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

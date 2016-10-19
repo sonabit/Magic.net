@@ -58,6 +58,7 @@ namespace Magic.Net
             object result;
             try
             {
+                Trace.WriteLine(string.Format("InvokeCommand {0}.{1}", command.ServiceType.FullName, command.MethodName.Name));
                 result = command.MethodName.Invoke(serviceInstance, command.ParameterValues);
             }
             catch (Exception ex)
@@ -203,7 +204,7 @@ namespace Magic.Net
                     s => s.Target is CommandResultAwait && ((CommandResultAwait) s.Target).Id == commandResult.CommandId).ToArray();
             if (delegates.Length == 0)
             {
-                Debug.WriteLine(string.Format("DataPackageHandler.ReceiveCommandResult CommandId {0} not found.", commandResult.CommandId));
+                Debug.WriteLine("DataPackageHandler.ReceiveCommandResult CommandId {0} not found.", commandResult.CommandId);
                 return;
             }
             foreach (var subscriber in delegates)

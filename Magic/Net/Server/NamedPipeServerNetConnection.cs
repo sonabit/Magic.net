@@ -28,6 +28,7 @@ namespace Magic.Net.Server
             _isInitialized = true;
             _localEndPoint = new MagicNetEndPoint(MagicNetEndPoint.BuildUri(Environment.MachineName, system.SystemName));
             _nodeSystem = system;
+            system.AddConnection(this);
         }
 
         public Uri RemoteAddress
@@ -37,7 +38,7 @@ namespace Magic.Net.Server
 
         public Uri LocalAddress
         {
-            get { throw new NotSupportedException("This instance is a listener."); }
+            get { return _localEndPoint.OriginUri; }
         }
 
         public int TimeoutMilliseconds

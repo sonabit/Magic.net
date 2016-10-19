@@ -9,10 +9,10 @@ namespace Magic.Net.Data
 
     internal abstract class ObjectStream : IEnumerator, IDisposable
     {
-        protected object _currentItem;
-        protected bool _disposed;
+        protected object CurrentItem;
+        private bool _disposed;
 
-        public ObjectStream(Uri remoteAddress)
+        protected ObjectStream(Uri remoteAddress)
         {
             RemoteAddress = remoteAddress;
         }
@@ -41,7 +41,7 @@ namespace Magic.Net.Data
             get
             {
                 if (_disposed) throw new ObjectDisposedException(RemoteAddress.ToString(), typeof(ObjectStream).FullName + " is allready disposed.");
-                return _currentItem;
+                return CurrentItem;
             }
         }
 
@@ -84,7 +84,7 @@ namespace Magic.Net.Data
             return this;
         }
 
-        public override void Push([NotNull]object item)
+        public override void Push(object item)
         {
             if (item == null) throw new ArgumentNullException("item");
             if (!(item is T))
@@ -104,21 +104,16 @@ namespace Magic.Net.Data
             _canReadEvent.Wait();
             if (_queue.Count > 0)
             {
-                _currentItem = _queue.Dequeue();
+                CurrentItem = _queue.Dequeue();
                 return true;
             }
             _waitForNewItemsEvent.Wait();
             if (_queue.Count > 0)
             {
-                _currentItem = _queue.Dequeue();
+                CurrentItem = _queue.Dequeue();
                 return true;
             }
             return false;
-        }
-
-        public void Reset()
-        {
-            throw new NotSupportedException();
         }
 
         public T Current

@@ -1,7 +1,11 @@
 ﻿using System.Security.Cryptography;
+using JetBrains.Annotations;
 
+// ReSharper disable once CheckNamespace
 namespace System.IO
 {
+    [PublicAPI]
+    // ReSharper disable once InconsistentNaming
     public static class MagIOExtension
     {
         /// <summary>

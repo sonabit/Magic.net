@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using JetBrains.Annotations;
 
 namespace Magic.Net
@@ -19,6 +15,7 @@ namespace Magic.Net
             return urb.Uri;
         }
 
+        [PublicAPI]
         public static Uri AsRemoteUri(this Uri uri, string remoteHost)
         {
             UriBuilder urb = new UriBuilder(uri)

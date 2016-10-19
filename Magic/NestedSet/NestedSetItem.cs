@@ -415,14 +415,14 @@ namespace Magic
                     listNode = listNode.Next;
                 }
                 return result;
-                using (NextLevelEnumerator e = new NextLevelEnumerator(this))
-                {
-                    while (e.MoveNext())
-                    {
-                        result++;
-                    }
-                }
-                return result;
+                //using (NextLevelEnumerator e = new NextLevelEnumerator(this))
+                //{
+                //    while (e.MoveNext())
+                //    {
+                //        result++;
+                //    }
+                //}
+                //return result;
             }
         }
 

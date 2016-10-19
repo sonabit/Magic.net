@@ -7,11 +7,16 @@ namespace Magic.Net.Sample.Node.Client
     internal sealed class ProgramClient : SimpleConsoleProgram
     {
         // URI  magic://hostname:port/direction/SystemName/ServiceType/MethodName?param1=value1,param2=ein%20wert
-        private static readonly Uri RemotePipeChannelUri = new Uri("magic://fake-pc/TestSystem", UriKind.Relative);
+        private static readonly Uri RemotePipeChannelUri;
 
         private NodeSystem _nodeSystem;
 
-        static void Main(string[] args)
+        static ProgramClient()
+        {
+            RemotePipeChannelUri = new Uri("magic://fake-pc/TestSystem");
+        }
+
+        private static void Main(string[] args)
         {
             Run(args, new ProgramClient());
         }
@@ -20,10 +25,11 @@ namespace Magic.Net.Sample.Node.Client
         {
             _nodeSystem = new NodeSystem();
 
-            INetConnection connection = new NamedPipeNetConnection(RemotePipeChannelUri, _nodeSystem);
-            
+            INetConnection connection = new NamedPipeNetConnection(RemotePipeChannelUri);
+            connection.LinkTo(_nodeSystem);
+
             MyData wert = new MyData() { Id = 666, Text = "gaaaannnnzzzzz viel Text" };
-            
+
             _nodeSystem.Start();
 
             //string result2 = _nodeSystem.Exc2<IMyDataService, string>(RemotePipeChannelUri, proxy => proxy.ReverseString(wert, 6) );
