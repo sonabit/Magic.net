@@ -7,7 +7,7 @@ namespace NUnit.MagicTest
     [TestFixture]
     public class ExtensionTests
     {
-        [Test, Category("Extensions")]
+        [Test]
         public void ValueTypWriteExtensionsInt32ToBuffer()
         {
             // Given
@@ -31,7 +31,7 @@ namespace NUnit.MagicTest
             Assert.AreEqual(0, buffer[9]);
         }
 
-        [Test, Category("Extensions")]
+        [Test]
         public void ValueTypWriteExtensionsByteToBuffer()
         {
             // Given
@@ -54,12 +54,12 @@ namespace NUnit.MagicTest
             Assert.AreEqual(32, buffer[9]);
         }
 
-        [Test, Category("Extensions")]
+        [Test]
         public void MagSystemExtensionUnixTimestampFromDateTime()
         {
             // Given
             DateTime dateTime = new DateTime(2016, 10, 19, 13, 20, 42);
-            
+
             // When
             long test = dateTime.UnixTimestampFromDateTime();
 
@@ -67,7 +67,7 @@ namespace NUnit.MagicTest
             Assert.AreEqual(1476883242, test);
         }
 
-        [Test, Category("Extensions")]
+        [Test]
         public void MagSystemExtensionTimeFromUnixTimestamp()
         {
             // Given
@@ -81,7 +81,7 @@ namespace NUnit.MagicTest
         }
 
 
-        [Test, Category("Extensions")]
+        [Test]
         public void MagSystemExtensionBytesFromHexString()
         {
             // Given
@@ -97,7 +97,7 @@ namespace NUnit.MagicTest
             Assert.AreEqual(3, bytes.Length);
         }
 
-        [Test, Category("Extensions")]
+        [Test]
         public void MagSystemExtensionStringToBase64()
         {
             // Given
@@ -110,7 +110,7 @@ namespace NUnit.MagicTest
             Assert.AreEqual("IA3/", s);
         }
 
-        [Test, Category("Extensions")]
+        [Test]
         public void MagSystemExtensionReadStringNullTerminated1()
         {
             // Given
@@ -125,7 +125,7 @@ namespace NUnit.MagicTest
             Assert.AreEqual("1 Test", s);
         }
 
-        [Test, Category("Extensions")]
+        [Test]
         public void MagSystemExtensionReadStringNullTerminated2()
         {
             // Given
@@ -139,5 +139,6 @@ namespace NUnit.MagicTest
             Assert.AreEqual(7, readLen);
             Assert.AreEqual("1 Test", s);
         }
+
     }
 }
