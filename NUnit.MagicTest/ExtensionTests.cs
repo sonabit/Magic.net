@@ -5,7 +5,7 @@ using NUnit.Framework;
 namespace NUnit.MagicTest
 {
     [TestFixture]
-    public sealed class ExtensionTests
+    public class ExtensionTests
     {
         [Test, Category("Extensions")]
         public void ValueTypWriteExtensionsInt32ToBuffer()

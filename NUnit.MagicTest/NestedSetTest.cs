@@ -3,8 +3,6 @@ using Magic;
 using NUnit.Framework;
 using NUnit.MagicTest.Models;
 
-// ReSharper disable UnusedVariable
-
 namespace NUnit.MagicTest
 {
     [TestFixture]
@@ -44,15 +42,15 @@ namespace NUnit.MagicTest
             Assert.AreEqual(3, _item2.Right);
             Assert.AreEqual(4, _item1.Right);
 
-            NestedSetItem<TestClass> item3 = _item2.Add(new TestClass("Item 3"));
+            var item3 = _item2.Add(new TestClass("Item 3"));
             Assert.AreEqual(1, _item1.Left);
             Assert.AreEqual(2, _item2.Left);
             Assert.AreEqual(3, item3.Left);
             Assert.AreEqual(4, item3.Right);
             Assert.AreEqual(5, _item2.Right);
             Assert.AreEqual(6, _item1.Right);
-            
-            NestedSetItem<TestClass> item5 = _item2.Add(new TestClass("Item 5"));
+
+            var item5 = _item2.Add(new TestClass("Item 5"));
             Assert.AreEqual(1, _item1.Left);
             Assert.AreEqual(2, _item2.Left);
             Assert.AreEqual(3, item3.Left);
@@ -73,8 +71,8 @@ namespace NUnit.MagicTest
             Assert.AreEqual(8, _item8.Left);
             Assert.AreEqual(9, _item8.Right);
             Assert.AreEqual(10, _item1.Right);
-            
-            NestedSetItem<TestClass> item9 = _item8.Add(new TestClass("Item 9"));
+
+            var item9 = _item8.Add(new TestClass("Item 9"));
             Assert.AreEqual(1, _item1.Left);
             Assert.AreEqual(2, _item2.Left);
             Assert.AreEqual(3, item3.Left);
@@ -87,7 +85,7 @@ namespace NUnit.MagicTest
             Assert.AreEqual(10, item9.Right);
             Assert.AreEqual(11, _item8.Right);
             Assert.AreEqual(12, _item1.Right);
-            
+
             _item12 = _item1.Add(new TestClass("Item 12"));
             Assert.AreEqual(1, _item1.Left);
             Assert.AreEqual(2, _item2.Left);
@@ -122,7 +120,7 @@ namespace NUnit.MagicTest
             Assert.AreEqual(15, _item12.Right);
             Assert.AreEqual(16, _item1.Right);
 
-            NestedSetItem<TestClass> item14 = _item13.Add(new TestClass("Item 14"));
+            var item14 = _item13.Add(new TestClass("Item 14"));
             Assert.AreEqual(1, _item1.Left);
             Assert.AreEqual(2, _item2.Left);
             Assert.AreEqual(3, item3.Left);
@@ -142,7 +140,7 @@ namespace NUnit.MagicTest
             Assert.AreEqual(17, _item12.Right);
             Assert.AreEqual(18, _item1.Right);
 
-            var item16 = _item13.Add(new TestClass("Item 16"));
+            _item13.Add(new TestClass("Item 16"));
             _item19 = _item12.Add(new TestClass("Item 19"));
         }
 
@@ -159,7 +157,7 @@ namespace NUnit.MagicTest
         public void TestAddCollectionLevel2()
         {
             var set = new NestedSet<TestClass>();
-            var item = new TestClass("root");
+            TestClass item = new TestClass("root");
             set.Root = item;
             var setItem = set.RootItem.Add(new TestClass("1. Item"));
             set.RootItem.Add(new TestClass("2. Item"));
@@ -167,25 +165,23 @@ namespace NUnit.MagicTest
             var l3Item = setItem.Add(new TestClass("Item 3"));
 
             foreach (var testClass in setItem)
-            {
                 Assert.AreEqual(l3Item, testClass);
-            }
         }
 
         [Test]
         public void TestAddCountLevel2()
         {
             var set = new NestedSet<TestClass>();
-            var item = new TestClass("root");
+            TestClass item = new TestClass("root");
             set.Root = item;
-            NestedSetItem<TestClass> setItem1 = set.RootItem.Add(new TestClass("1. Item "));
+            var setItem1 = set.RootItem.Add(new TestClass("1. Item "));
 
             Assert.AreEqual(1, set.RootItem.Left);
             Assert.AreEqual(4, set.RootItem.Right);
             Assert.AreEqual(2, setItem1.Left);
             Assert.AreEqual(3, setItem1.Right);
 
-            NestedSetItem<TestClass> setItem2 = set.RootItem.Add(new TestClass("2. Item"));
+            var setItem2 = set.RootItem.Add(new TestClass("2. Item"));
 
             Assert.AreEqual(1, set.RootItem.Left);
             Assert.AreEqual(6, set.RootItem.Right);
@@ -194,7 +190,7 @@ namespace NUnit.MagicTest
             Assert.AreEqual(4, setItem2.Left);
             Assert.AreEqual(5, setItem2.Right);
 
-            NestedSetItem<TestClass> setItem3 = setItem1.Add(new TestClass("3. Item"));
+            var setItem3 = setItem1.Add(new TestClass("3. Item"));
 
             Assert.AreEqual(1, set.RootItem.Left);
             Assert.AreEqual(2, setItem1.Left);
