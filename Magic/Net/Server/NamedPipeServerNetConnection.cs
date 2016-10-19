@@ -181,7 +181,7 @@ namespace Magic.Net.Server
 
             try
             {
-                var adapter = new NamedPipeClientAdapterHost(stream, _localEndPoint.OriginUri.AsLocalUri(), _nodeSystem);
+                var adapter = new NamedPipeClientAdapterHost(stream, _nodeSystem);
                 adapter.Initialize();
 
                 NetConnection connection = new NetConnectionStreamHost(adapter);

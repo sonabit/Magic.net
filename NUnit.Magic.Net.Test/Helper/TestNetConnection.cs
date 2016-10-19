@@ -1,21 +1,13 @@
-﻿using System.ServiceModel.Channels;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 using Magic.Net;
 
 namespace NUnit.Magic.Net.Test.Helper
 {
-
     public class TestNetConnection : NetConnection
     {
         private readonly INetConnectionAdapter _connectionAdapter;
-        private static readonly BufferManager _bufferManager;
 
-        static TestNetConnection()
-        {
-            _bufferManager = BufferManager.CreateBufferManager(500 * 1024 *1024, 10 * 1024 *1024);
-        }
-        public TestNetConnection([NotNull]INetConnectionAdapter connectionAdapter) 
-            : base()
+        public TestNetConnection([NotNull] INetConnectionAdapter connectionAdapter)
         {
             _connectionAdapter = connectionAdapter;
         }

@@ -1,13 +1,12 @@
 using System;
 using JetBrains.Annotations;
-using Magic.Net.Data;
 
 namespace Magic.Net
 {
     internal sealed class NetOjectPackage : NetPackage
     {
-        private readonly NetDataPackageHeader _header;
         private readonly object _data;
+        private readonly NetDataPackageHeader _header;
 
         public NetOjectPackage([NotNull] NetDataPackageHeader header, [NotNull] object data)
         {
@@ -18,12 +17,24 @@ namespace Magic.Net
             _data = data;
         }
 
-        public override bool IsEmpty { get { return false; } }
+        public override bool IsEmpty
+        {
+            get { return false; }
+        }
 
-        public override byte Version { get { return _header.Version; } }
+        public override byte Version
+        {
+            get { return _header.Version; }
+        }
 
-        public override DataPackageContentType PackageContentType { get { return _header.PackageContentType; } }
-        
-        public object Data { get { return _data; } }
+        public override DataPackageContentType PackageContentType
+        {
+            get { return _header.PackageContentType; }
+        }
+
+        public object Data
+        {
+            get { return _data; }
+        }
     }
 }

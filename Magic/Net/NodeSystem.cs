@@ -40,7 +40,7 @@ namespace Magic.Net
             _objectStreamManager = new ObjectStreamManager(formatterCollection);
             _formatterCollection = formatterCollection;
             _systemName = systemName;
-            var serviceCollectionProvider = new InternalServiceCollection(serviceProvider);
+            InternalServiceCollection serviceCollectionProvider = new InternalServiceCollection(serviceProvider);
             _packageHandler = new DataPackageHandler(this, serviceCollectionProvider, formatterCollection);
             serviceCollectionProvider[typeof(IObjectStreamService)] = typeof(ObjectStreamRemoteService);
         }
@@ -67,7 +67,7 @@ namespace Magic.Net
             lock (_connections)
             {
                 _isRunning = true;
-                foreach (var netConnection in _connections)
+                foreach (INetConnection netConnection in _connections)
                     OpenConnection(netConnection);
             }
         }
@@ -83,10 +83,10 @@ namespace Magic.Net
             lock (_connections)
             {
                 _isRunning = false;
-                foreach (var netConnection in _connections.ToArray())
+                foreach (INetConnection netConnection in _connections.ToArray())
                 {
                     netConnection.Close();
-                    var disposable = netConnection as IDisposable;
+                    IDisposable disposable = netConnection as IDisposable;
                     if (disposable != null)
                         disposable.Dispose();
                 }
@@ -99,44 +99,26 @@ namespace Magic.Net
         {
             return
                 await
-                    TaskHelper.Run<Uri, Expression<Func<TResult>>, int, TResult>(Execute, remoteAddress, expression,
+                    TaskHelper.Run(Execute, remoteAddress, expression,
                         imeoutMilliseconds);
         }
 
         public TResult Execute<TResult>(Uri remoteAddress, Expression<Func<TResult>> expression,
             int imeoutMilliseconds = Timeout.Infinite)
         {
-            var connection = FindConnection(remoteAddress);
+            INetConnection connection = FindConnection(remoteAddress);
 
             if (connection == null)
                 throw new Exception();
 
-            var command = expression.ToNetCommand();
+            INetCommand command = expression.ToNetCommand();
             return Execute<TResult>(connection, command, imeoutMilliseconds);
-        }
-
-        /// <summary>
-        ///     Experimental
-        /// </summary>
-        /// <typeparam name="TRemoteType"></typeparam>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="remoteAddress"></param>
-        /// <param name="expression"></param>
-        /// <returns></returns>
-        // ReSharper disable once UnusedMember.Global
-        public TResult Exc2<TRemoteType, TResult>(Uri remoteAddress, Expression<Func<TRemoteType, TResult>> expression)
-        {
-            var connection = FindConnection(remoteAddress);
-
-            var command = expression.ToNetCommand();
-
-            return default(TResult);
         }
 
         private INetConnection FindConnection(Uri remoteAddress)
         {
             var path = remoteAddress.GetLeftPart(UriPartial.Path);
-            INetConnection result = null;
+            INetConnection result;
             lock (_connections)
             {
                 result = _connections.FirstOrDefault(
@@ -155,27 +137,29 @@ namespace Magic.Net
 
         private TResult Execute<TResult>(INetConnection connection, INetCommand command, int imeoutMilliseconds)
         {
-            var header = NetDataPackageHeader.CreateNetDataPackageHeader(DataPackageContentType.NetCommand,
-                DataSerializeFormat.MsBinary);
-            byte[] buffer = null;
-            var magicSerialization = command as IMagicSerialization;
+            NetDataPackageHeader header =
+                NetDataPackageHeader.CreateNetDataPackageHeader(DataPackageContentType.NetCommand,
+                    DataSerializeFormat.MsBinary);
+            // ReSharper disable once SuspiciousTypeConversion.Global
+            IMagicSerialization magicSerialization = command as IMagicSerialization;
             if (magicSerialization != null)
                 header = NetDataPackageHeader.CreateNetDataPackageHeader(DataPackageContentType.NetCommand,
                     DataSerializeFormat.Magic);
 
-            var s = _formatterCollection.GetFormatter(header.SerializeFormat);
-            buffer = s.Serialize(command);
-            var package = new NetDataPackage(header, buffer, 0, buffer.Length);
+            ISerializeFormatter s = _formatterCollection.GetFormatter(header.SerializeFormat);
+            var buffer = s.Serialize(command);
+            NetDataPackage package = new NetDataPackage(header, buffer, 0, buffer.Length);
 
             connection.Send(package.DataSegments().ToArray());
 
             if (typeof(TResult) != typeof(void))
             {
-                var commandResult = new DataPackageHandler.CommandResultAwait(command.Id, _packageHandler);
+                DataPackageHandler.CommandResultAwait commandResult =
+                    new DataPackageHandler.CommandResultAwait(command.Id, _packageHandler);
                 if (!commandResult.WaitHandle.WaitOne(imeoutMilliseconds))
                     throw new TimeoutException();
 
-                var remoteException = commandResult.Result as Exception;
+                Exception remoteException = commandResult.Result as Exception;
                 if (remoteException != null)
                     throw new Exception("RemoteException: " + remoteException.Message, remoteException);
 
@@ -208,7 +192,7 @@ namespace Magic.Net
 
             private static object GetInstance(object service)
             {
-                var serviceType = service as Type;
+                Type serviceType = service as Type;
                 if (serviceType != null)
                     return Activator.CreateInstance(serviceType);
                 return service;
@@ -287,19 +271,9 @@ namespace Magic.Net
 
         public IEnumerator<T> CreateObjectStream<T>(Uri remoteAddress, TimeSpan timeout)
         {
-            var connection = FindConnection(remoteAddress);
-
-            RemoteObjectStream<T> remoteObjectStream = Execute(remoteAddress,
+            var remoteObjectStream = Execute(remoteAddress,
                 () => Proxy<IObjectStreamService>.Target.Create<T>(), Convert.ToInt32(timeout.TotalMilliseconds));
             _objectStreamManager.Add(remoteObjectStream);
-
-            //ObjectStream<T> objectStream = _objectStreamManager.Create<T>(connection.RemoteAddress, Guid.NewGuid());
-            //ObjectStreamInfo info = new ObjectStreamInfo {State = ObjectStreamState.Creating};
-            //ISerializeFormatter serializeFormatter = _objectStreamManager.FormatterCollection.GetFormatter(connection.DefaultSerializeFormat);
-            //byte[] bytes = serializeFormatter.Serialize(info);
-            //NetDataPackage package = new NetDataPackage(NetDataPackageHeader.CreateNetDataPackageHeader(DataPackageContentType.NetObjectStreamInitialize,
-            //    connection.DefaultSerializeFormat), bytes, 0, bytes.Length);
-            //connection.Send(package.DataSegments().ToArray());
 
             return remoteObjectStream;
         }

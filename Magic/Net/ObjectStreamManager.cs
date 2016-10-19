@@ -7,15 +7,20 @@ namespace Magic.Net
 {
     internal sealed class ObjectStreamManager : IObjectStreamManager
     {
-        private readonly Dictionary<Uri, ObjectStream> objectStreams = new Dictionary<Uri, ObjectStream>();
+        private readonly Dictionary<Uri, ObjectStream> _objectStreams = new Dictionary<Uri, ObjectStream>();
 
         internal ObjectStreamManager(ISerializeFormatterCollection formatterCollection)
         {
             FormatterCollection = formatterCollection;
         }
 
+        public void Add(ObjectStream objectStream)
+        {
+            _objectStreams.Add(objectStream.RemoteAddress, objectStream);
+        }
+
         #region Implementation of IObjectStreamManager
-        
+
         public ObjectObservableSender CreateSender(Uri remoteAddress, Guid streamId)
         {
             throw new NotImplementedException();
@@ -26,15 +31,10 @@ namespace Magic.Net
         public ObjectStream GetObjectStream(Uri remoteAddress)
         {
             ObjectStream result;
-            objectStreams.TryGetValue(remoteAddress, out result);
+            _objectStreams.TryGetValue(remoteAddress, out result);
             return result;
         }
 
         #endregion
-
-        public void Add(ObjectStream objectStream)
-        {
-            objectStreams.Add(objectStream.RemoteAddress, objectStream);
-        }
     }
 }

@@ -2,20 +2,19 @@
 
 namespace Magic.Net.Data
 {
+    // ReSharper disable once ClassNeverInstantiated.Global
     internal sealed class ObjectObservableSender : IDisposable
     {
-        public void Push(object data)
-        {
-            
-        }
-
         #region Implementation of IDisposable
 
         public void Dispose()
         {
-            
         }
 
         #endregion
+
+        public void Push(object data)
+        {
+        }
     }
 }

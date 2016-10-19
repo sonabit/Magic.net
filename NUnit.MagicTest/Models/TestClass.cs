@@ -1,19 +1,16 @@
-﻿using System.ComponentModel;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
-namespace MagicTest.Models
+namespace NUnit.MagicTest.Models
 {
     [DebuggerDisplay("{Name}")]
     [DebuggerStepThrough]
-    class TestClass
+    internal class TestClass
     {
-        private readonly string _name;
-
         public TestClass(string name)
         {
-            _name = name;
+            Name = name;
         }
 
-        public string Name { get { return _name; } }
+        public string Name { get; }
     }
 }

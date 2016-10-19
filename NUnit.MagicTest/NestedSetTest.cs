@@ -1,14 +1,14 @@
 ﻿using System.Linq;
 using Magic;
-using MagicTest.Models;
 using NUnit.Framework;
+using NUnit.MagicTest.Models;
 
 // ReSharper disable UnusedVariable
 
 namespace NUnit.MagicTest
 {
     [TestFixture]
-    public class NestedSetTest
+    public class NestedSetTests
     {
         /*
 

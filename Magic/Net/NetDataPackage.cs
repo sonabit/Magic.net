@@ -1,15 +1,13 @@
 using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
-using Magic.Net.Data;
 
 namespace Magic.Net
 {
     internal class NetDataPackage : NetPackage
     {
         #region Header
-
-        [NotNull]
+        
         private readonly ArraySegment<byte> _buffer;
         [NotNull]
         private readonly NetDataPackageHeader _header;

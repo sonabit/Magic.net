@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using NUnit.Framework;
 
 namespace NUnit.MagicTest
@@ -100,13 +101,43 @@ namespace NUnit.MagicTest
         public void MagSystemExtensionStringToBase64()
         {
             // Given
-            byte[] bytes = {0x20, 0x0D, 0xFF};
+            byte[] bytes = { 0x20, 0x0D, 0xFF };
 
             // When
             string s = bytes.ToBase64();
 
             // Then 
             Assert.AreEqual("IA3/", s);
+        }
+
+        [Test, Category("Extensions")]
+        public void MagSystemExtensionReadStringNullTerminated1()
+        {
+            // Given
+            byte[] bytes = { 0x20, 0x0D, 0x00, 49, 32, 84, 101, 115, 116, 0, 45, 120 };
+
+            // When
+            string s;
+            int readLen = bytes.ReadStringNullTerminated(3, out s);
+
+            // Then 
+            Assert.AreEqual(7, readLen);
+            Assert.AreEqual("1 Test", s);
+        }
+
+        [Test, Category("Extensions")]
+        public void MagSystemExtensionReadStringNullTerminated2()
+        {
+            // Given
+            byte[] bytes = { 0x20, 0x0D, 0x00, 49, 32, 84, 101, 115, 116, 0, 45, 120 };
+
+            // When
+            string s;
+            int readLen = bytes.ReadStringNullTerminated(3, out s, Encoding.ASCII);
+
+            // Then 
+            Assert.AreEqual(7, readLen);
+            Assert.AreEqual("1 Test", s);
         }
     }
 }

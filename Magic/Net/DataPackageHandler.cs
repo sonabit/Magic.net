@@ -163,7 +163,7 @@ namespace Magic.Net
         private void InitializeNewObjectStream(RequestState request)
         {
             ObjectStreamInfo info = request.Package.Data as ObjectStreamInfo;
-            if (info != null && info.State == Data.ObjectStreamState.Creating)
+            if (info != null && info.State == ObjectStreamState.Creating)
             {
                 //ObjectStream objectStream = _objectStreamManager.Create(request.Connetion.RemoteAddress, info.StreamId);
                 //info.State = ObjectStreamState.Established;

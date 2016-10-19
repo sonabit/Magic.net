@@ -104,7 +104,7 @@ namespace System
         /// <returns>The count of read bytes</returns>
         public static int ReadStringNullTerminated(this byte[] source, int offset, out string result, Encoding encoding)
         {
-            var len = Array.FindIndex(source, offset, b => b == byte.MinValue) - (int)offset;
+            var len = Array.FindIndex(source, offset, b => b == byte.MinValue) - offset;
             result = encoding.GetString(source, offset, len);
             return len + 1/*null-byte*/;
         }

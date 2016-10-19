@@ -10,7 +10,7 @@ namespace Magic.Net
             UriBuilder urb = new UriBuilder(uri)
             {
                 
-                Host = System.Environment.MachineName
+                Host = Environment.MachineName
             };
             return urb.Uri;
         }

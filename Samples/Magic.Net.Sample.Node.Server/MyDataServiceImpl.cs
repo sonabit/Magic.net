@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using JetBrains.Annotations;
 
 namespace Magic.Net.Sample.Node.Server
@@ -12,7 +8,7 @@ namespace Magic.Net.Sample.Node.Server
     {
         public string ReverseString(MyData data, int startIndex)
         {
-            string result = data.Text.Substring(0, startIndex);
+            var result = data.Text.Substring(0, startIndex);
             return result + new string(data.Text.Skip(startIndex).Reverse().ToArray());
         }
     }

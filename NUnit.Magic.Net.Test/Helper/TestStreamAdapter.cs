@@ -1,27 +1,17 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Magic.Net;
 
 namespace NUnit.Magic.Net.Test.Helper
 {
-    sealed class TestStreamAdapter : INetConnectionAdapter
+    internal sealed class TestStreamAdapter : INetConnectionAdapter
     {
         private readonly WaitHandle _stopHandle;
-
-        #region Fields
-
-        private readonly Queue<NetPackage> _inStream;
-        private readonly Stream _outStream;
-        private readonly AutoResetEvent _canReadEvent = new AutoResetEvent(false);
-
-        #endregion
 
         public TestStreamAdapter(Uri localAddress, Uri remoteAddress, Stream writeStream, WaitHandle stopHandle)
         {
@@ -42,12 +32,25 @@ namespace NUnit.Magic.Net.Test.Helper
 
         #endregion
 
+        #region Fields
+
+        private readonly Queue<NetPackage> _inStream;
+        private readonly Stream _outStream;
+        private readonly AutoResetEvent _canReadEvent = new AutoResetEvent(false);
+
+        #endregion
+
         #region Implementation of INetConnectionAdapter
 
-        public Encoding Encoding { get { return Encoding.UTF8;} }
+        public Encoding Encoding
+        {
+            get { return Encoding.UTF8; }
+        }
+
         public bool IsConnected { get; private set; }
         public Uri RemoteAddress { get; private set; }
         public Uri LocalAddress { get; private set; }
+
         public void Open()
         {
             IsConnected = true;
@@ -60,26 +63,22 @@ namespace NUnit.Magic.Net.Test.Helper
 
         public NetPackage ReadData()
         {
-            WaitHandle.WaitAny(new WaitHandle[] { _canReadEvent, _stopHandle});
+            WaitHandle.WaitAny(new[] {_canReadEvent, _stopHandle});
 
-            if (_inStream.Count == 0 || !IsConnected)
+            if ((_inStream.Count == 0) || !IsConnected)
             {
                 if (_stopHandle.WaitOne(0))
-                {
                     IsConnected = false;
-                }
                 return null;
             }
 
             if (_inStream.Count > 0)
-            {
                 _canReadEvent.Set();
-            }
 
             return _inStream.Dequeue();
         }
 
-        public void AddNextReadPackages([NotNull]IEnumerable<NetPackage> packages )
+        public void AddNextReadPackages([NotNull] IEnumerable<NetPackage> packages)
         {
             packages.Each(_inStream.Enqueue);
             _canReadEvent.Set();
@@ -89,11 +88,11 @@ namespace NUnit.Magic.Net.Test.Helper
         {
             if (OnWriteData != null)
             {
-                byte[] data = new byte[buffers.Sum(b => b.Count)];
-                int len = 0;
-                foreach (ArraySegment<byte> arraySegment in buffers)
+                var data = new byte[buffers.Sum(b => b.Count)];
+                var len = 0;
+                foreach (var arraySegment in buffers)
                 {
-                    Buffer.BlockCopy(arraySegment.Array,arraySegment.Offset, data, len, arraySegment.Count);
+                    Buffer.BlockCopy(arraySegment.Array, arraySegment.Offset, data, len, arraySegment.Count);
                     len = arraySegment.Count;
                 }
 
@@ -102,7 +101,6 @@ namespace NUnit.Magic.Net.Test.Helper
         }
 
         public event Action<TestStreamAdapter, byte[]> OnWriteData;
-        
 
         #endregion
     }

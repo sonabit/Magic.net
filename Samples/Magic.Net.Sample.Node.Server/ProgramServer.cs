@@ -4,10 +4,11 @@ using Magic.Net.Server;
 
 namespace Magic.Net.Sample.Node.Server
 {
-    internal  static class ProgramServer 
+    internal static class ProgramServer
     {
         private static NodeSystem _nodeSystem;
 
+        // ReSharper disable once UnusedParameter.Local
         private static void Main(string[] args)
         {
             Trace.Listeners.Add(new ConsoleTraceListener());
@@ -15,7 +16,7 @@ namespace Magic.Net.Sample.Node.Server
             // URI  magic://hostname:port/SystemName
 
             ServiceCollection serviceCollection = new ServiceCollection();
-            serviceCollection.AddService(() => (IMyDataService)new MyDataServiceImpl());
+            serviceCollection.AddService(() => (IMyDataService) new MyDataServiceImpl());
 
             _nodeSystem = new NodeSystem("TestSystem", serviceCollection);
 
@@ -29,16 +30,14 @@ namespace Magic.Net.Sample.Node.Server
             do
             {
                 key = Console.ReadKey(false);
-
             } while (key.Key != ConsoleKey.Enter);
 
             _nodeSystem.Stop();
-            
         }
 
         private static void PipeConnectionOnConnectionAccepted(object sender, INetConnection e)
         {
-            Console.WriteLine("Accepted "+ e.GetType().Name + " from " + e.RemoteAddress);
+            Console.WriteLine("Accepted " + e.GetType().Name + " from " + e.RemoteAddress);
         }
     }
 }

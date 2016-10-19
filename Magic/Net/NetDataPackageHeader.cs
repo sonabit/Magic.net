@@ -1,19 +1,12 @@
-using System;
-
 namespace Magic.Net
 {
     public class NetDataPackageHeader
     {
-        public static NetDataPackageHeader CreateNetDataPackageHeader(DataPackageContentType packageContentType, DataSerializeFormat serializeFormat, byte version = 1)
-        {
-            return new NetDataPackageHeader(version, packageContentType, serializeFormat);
-        }
-
         private readonly int _headerLength;
 
         public NetDataPackageHeader(ref byte[] buffer)
         {
-            int len = 0;
+            var len = 0;
             if (buffer.Length > 0)
             {
                 Version = buffer[0];
@@ -22,18 +15,19 @@ namespace Magic.Net
 
             if (buffer.Length > 1)
             {
-                PackageContentType = (DataPackageContentType)buffer[1];
+                PackageContentType = (DataPackageContentType) buffer[1];
                 len++;
             }
             if (buffer.Length > 2)
             {
-                SerializeFormat = (DataSerializeFormat)buffer[2];
+                SerializeFormat = (DataSerializeFormat) buffer[2];
                 len++;
             }
             _headerLength = len;
         }
 
-        private NetDataPackageHeader(byte version, DataPackageContentType packageContentType, DataSerializeFormat serializeFormat)
+        private NetDataPackageHeader(byte version, DataPackageContentType packageContentType,
+            DataSerializeFormat serializeFormat)
         {
             Version = version;
             PackageContentType = packageContentType;
@@ -52,9 +46,15 @@ namespace Magic.Net
 
         public DataSerializeFormat SerializeFormat { get; private set; }
 
+        public static NetDataPackageHeader CreateNetDataPackageHeader(DataPackageContentType packageContentType,
+            DataSerializeFormat serializeFormat, byte version = 1)
+        {
+            return new NetDataPackageHeader(version, packageContentType, serializeFormat);
+        }
+
         public byte[] ToBytes()
         {
-            return new byte[] {Version, (byte)PackageContentType, (byte)SerializeFormat};
+            return new[] {Version, (byte) PackageContentType, (byte) SerializeFormat};
         }
     }
 }

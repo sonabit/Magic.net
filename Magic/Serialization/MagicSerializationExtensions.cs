@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 
 namespace Magic.Serialization
 {
@@ -11,7 +6,7 @@ namespace Magic.Serialization
     {
         public static byte[] ToBytes(this IMagicSerialization serialization)
         {
-            using (var ms = new MemoryStream())
+            using (MemoryStream ms = new MemoryStream())
             {
                 serialization.Deserialize(ms);
                 return ms.ToArray();

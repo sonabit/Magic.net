@@ -8,7 +8,7 @@ namespace Magic.Net
     internal interface IObjectStreamManager
     {
 
-        Data.ObjectObservableSender CreateSender(Uri remoteAddress, Guid streamId);
+        ObjectObservableSender CreateSender(Uri remoteAddress, Guid streamId);
 
         ISerializeFormatterCollection FormatterCollection { get; }
 

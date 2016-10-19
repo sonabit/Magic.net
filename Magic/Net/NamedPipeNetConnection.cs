@@ -8,7 +8,6 @@ namespace Magic.Net
         private readonly Uri _remoteAddress;
 
         public NamedPipeNetConnection(Uri remoteAddress)
-            : base()
         {
             _remoteAddress = remoteAddress;
         }

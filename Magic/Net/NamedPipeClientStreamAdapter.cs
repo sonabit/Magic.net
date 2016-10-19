@@ -1,8 +1,5 @@
 ﻿using System;
-using System.IO;
 using System.IO.Pipes;
-using System.Linq;
-using System.ServiceModel.Channels;
 using JetBrains.Annotations;
 
 namespace Magic.Net

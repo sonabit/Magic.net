@@ -1,7 +1,5 @@
 ﻿using System.IO.Pipes;
-using System.ServiceModel.Channels;
 using JetBrains.Annotations;
-using Magic.Net.Server;
 
 namespace Magic.Net
 {

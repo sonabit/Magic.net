@@ -257,45 +257,39 @@ namespace Magic
 
         void ICollection<NestedSetItem<T>>.Add(NestedSetItem<T> item)
         {
-            //lock (SyncRoot)
+            var right = Right;
+
+            var listNode = _set;
+            while (listNode != null)
             {
-                var right = Right;
-                var count = right - Left;
-                //var i = right + 1;
-
-                var listNode = _set;
-                while (listNode != null)
+                if (listNode.Value.Left > right)
                 {
-                    if (listNode.Value.Left > right)
-                    {
-                        listNode.Value.Left += 2;
-                        listNode.Value.Right += 2;
-                       
-                    }else
-                    if (listNode.Value.Right > right)
-                    {
-                        listNode.Value.Right += 2;
-                    }
-                    listNode = listNode.Next;
+                    listNode.Value.Left += 2;
+                    listNode.Value.Right += 2;
                 }
-
-                Right += 2;
-                item.Left = right;
-                item.Right = right + 1;
-                var last = AsAllChildren().LastOrDefault() ?? this;
-                _set.List.AddAfter(last._set, item._set);
-
-
-                foreach (var parent in _parents)
+                else if (listNode.Value.Right > right)
                 {
-                    parent.Right += 2;
-                    item._parents.Add(parent);
+                    listNode.Value.Right += 2;
                 }
-                item._parents.Add(this);
-                item.Parent = this;
-                
+                listNode = listNode.Next;
             }
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new ArrayList {item}));
+
+            Right += 2;
+            item.Left = right;
+            item.Right = right + 1;
+            var last = AsAllChildren().LastOrDefault() ?? this;
+            _set.List.AddAfter(last._set, item._set);
+
+
+            foreach (var parent in _parents)
+            {
+                parent.Right += 2;
+                item._parents.Add(parent);
+            }
+            item._parents.Add(this);
+            item.Parent = this;
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add,
+                new ArrayList {item}));
             RaisePropertyChanged("Count");
             RaisePropertyChanged("TotalCount");
         }

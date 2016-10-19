@@ -1,27 +1,13 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.ServiceModel.Channels;
 using System.Text;
 using JetBrains.Annotations;
-using Magic.Net.Data;
-using Magic.Serialization;
 
 namespace Magic.Net
 {
     internal abstract class ReadWriteStreamAdapter : INetConnectionAdapter
     {
-
-        #region Fields
-
-        private readonly byte[] _lenBuffer = new byte[sizeof (int)];
-
-        private bool _disposedValue; // Dient zur Erkennung redundanter Aufrufe.
-        private readonly Stream _stream;
-        private readonly ISystem _system;
-
-        #endregion Fields
-
         #region Ctors
 
         protected ReadWriteStreamAdapter([NotNull] Stream stream, [NotNull] ISystem system)
@@ -34,9 +20,22 @@ namespace Magic.Net
 
         #endregion Ctors
 
+        #region Fields
+
+        private readonly byte[] _lenBuffer = new byte[sizeof(int)];
+
+        private bool _disposedValue; // Dient zur Erkennung redundanter Aufrufe.
+        private readonly Stream _stream;
+        private readonly ISystem _system;
+
+        #endregion Fields
+
         #region Implementation of INetConnectionAdapter
 
-        public Encoding Encoding { get { return Encoding.UTF8; } }
+        public Encoding Encoding
+        {
+            get { return Encoding.UTF8; }
+        }
 
         public abstract bool IsConnected { get; }
         public Uri RemoteAddress { get; protected set; }
@@ -62,15 +61,15 @@ namespace Magic.Net
             }
 
 
-            var _len = BitConverter.ToInt32(_lenBuffer, 0);
+            var len = BitConverter.ToInt32(_lenBuffer, 0);
 
             //eigentliche Daten lesen
             // Die Daten können aus mehreren Segmenten bestehen, der muss auf die Reihenfolge achten
-            int currentCount = 0;
-            byte[] buffer = _system.BufferManager.TakeBuffer(_len);
-            while (currentCount < _len)
+            var currentCount = 0;
+            var buffer = _system.BufferManager.TakeBuffer(len);
+            while (currentCount < len)
             {
-                rlen = _stream.Read(buffer, currentCount, _len - currentCount);
+                rlen = _stream.Read(buffer, currentCount, len - currentCount);
                 currentCount += rlen;
                 if (rlen == 0)
                 {
@@ -81,8 +80,8 @@ namespace Magic.Net
             }
 
             //Debug.WriteLine("ReceiveFromStreamInternal " + (bytes1.Length + 4));
-            
-            var p = new NetDataPackage(buffer);
+
+            NetDataPackage p = new NetDataPackage(buffer);
             return p;
         }
 
@@ -90,16 +89,14 @@ namespace Magic.Net
         {
             // ReSharper disable once BuiltInTypeReferenceStyle
             var len = buffers.Sum(b => b.Count);
-            byte[] lenBuffer = _system.BufferManager.TakeBuffer(4);
+            var lenBuffer = _system.BufferManager.TakeBuffer(4);
 
             len.ToBuffer(lenBuffer);
             _stream.Write(lenBuffer, 0, 4);
             _system.BufferManager.ReturnBuffer(lenBuffer);
 
-            foreach (ArraySegment<byte> arraySegment in buffers)
-            {
+            foreach (var arraySegment in buffers)
                 _stream.Write(arraySegment.Array, arraySegment.Offset, arraySegment.Count);
-            }
 
             _stream.Flush();
         }

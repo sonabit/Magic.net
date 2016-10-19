@@ -91,11 +91,11 @@
     <Compile Include="Net\NetDataPackageHeader.cs" />
     <Compile Include="Net\NetPackage.cs" />
     <Compile Include="Net\NodeSystem.cs" />
-    <Compile Include="Net\ObjectObservableSender.cs" />
+    <Compile Include="Net\Data\ObjectObservableSender.cs" />
     <Compile Include="Net\Data\RemoteObjectStream.cs" />
-    <Compile Include="Net\ObjectStreamInfo.cs" />
+    <Compile Include="Net\Data\ObjectStreamInfo.cs" />
     <Compile Include="Net\ObjectStreamManager.cs" />
-    <Compile Include="Net\ObjectStreamState.cs" />
+    <Compile Include="Net\Data\ObjectStreamState.cs" />
     <Compile Include="Net\Proxy.cs" />
     <Compile Include="Net\Server\NamedPipeClientAdapterHost.cs" />
     <Compile Include="Net\Server\NamedPipeServerNetConnection.cs" />

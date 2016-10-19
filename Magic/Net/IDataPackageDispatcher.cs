@@ -1,5 +1,4 @@
 ﻿using JetBrains.Annotations;
-using Magic.Net;
 using Magic.Net.Data;
 
 namespace Magic.Net

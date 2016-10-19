@@ -1,10 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
-using System.Reflection.Emit;
 using System.Runtime.Serialization.Formatters.Binary;
 using FakeItEasy;
-using FakeItEasy.ExtensionSyntax.Full;
 using Magic.Net;
 using Magic.Net.Data;
 using Magic.Serialization;
@@ -14,7 +12,7 @@ using NUnit.Magic.Net.Test.Helper;
 namespace NUnit.Magic.Net.Test
 {
     [TestFixture]
-    public class NetConnectionTest
+    public class NetConnectionTests
     {
         [Test, Category("receive data package")]
         public void NetConnection_ReceivedQueue_OnReceivedDataPackage_Ok()
@@ -58,7 +56,6 @@ namespace NUnit.Magic.Net.Test
             // Given
             ISerializeFormatterCollection formatterCollection = A.Fake<ISerializeFormatterCollection>();
             IDataPackageHandler dataPackageHandler = A.Fake<IDataPackageHandler>();
-            INetConnectionAdapter adapter = A.Fake<INetConnectionAdapter>();
             ISystem fakeSystem = new NodeSystem("UnitTestSystem", formatterCollection, dataPackageHandler);
 
             var connection = A.Fake<TestNetConnection>(o => o.CallsBaseMethods());

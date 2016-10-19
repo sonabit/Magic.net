@@ -1,10 +1,9 @@
-﻿using JetBrains.Annotations;
+﻿using System.IO;
+using JetBrains.Annotations;
 
 // ReSharper disable once CheckNamespace
 namespace System.Security.Cryptography
 {
-    using System.IO;
-
     [PublicAPI]
     public static class MagCryptographyExtension
     {
@@ -16,7 +15,7 @@ namespace System.Security.Cryptography
         /// <returns>The calculated hash code as Hex-string</returns>
         public static string FromFile(this MD5 md5, string filepath)
         {
-            using (var stream = File.OpenRead(filepath))
+            using (FileStream stream = File.OpenRead(filepath))
             {
                 return md5.ComputeHash(stream).ToHexString();
             }

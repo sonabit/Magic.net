@@ -1,7 +1,5 @@
-﻿using System;
-using System.ServiceModel.Channels;
+﻿using System.ServiceModel.Channels;
 using JetBrains.Annotations;
-using Magic.Net.Server;
 using Magic.Serialization;
 
 namespace Magic.Net

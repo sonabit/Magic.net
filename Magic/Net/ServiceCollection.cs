@@ -5,21 +5,26 @@ using JetBrains.Annotations;
 namespace Magic.Net
 {
     /// <summary>
-    /// A simple IOC
+    ///     A simple IOC
     /// </summary>
     public sealed class ServiceCollection : IServiceProvider
     {
         private readonly Dictionary<Type, ServiceCreator> _services = new Dictionary<Type, ServiceCreator>();
 
-        /// <summary>
-        /// Create an instance of a simple IOC.
-        /// </summary>
-        public ServiceCollection()
+        #region Implementation of IServiceProvider
+
+        [CanBeNull]
+        public object GetService(Type serviceType)
         {
-            
+            ServiceCreator creator;
+            if (_services.TryGetValue(serviceType, out creator))
+                return creator.Create();
+            return null;
         }
 
-        public void AddService<TService>(Func<TService> func )
+        #endregion
+
+        public void AddService<TService>(Func<TService> func)
         {
             _services.Add(typeof(TService), new ServiceFuncCreator<TService>(func));
         }
@@ -29,22 +34,6 @@ namespace Magic.Net
         {
             _services.Add(typeof(TService), new StaticService<TService>(instance));
         }
-        
-
-        #region Implementation of IServiceProvider
-
-        [CanBeNull]
-        public object GetService(Type serviceType)
-        {
-            ServiceCreator creator;
-            if (_services.TryGetValue(serviceType, out creator))
-            {
-                return creator.Create();
-            }
-            return null;
-        }
-
-        #endregion
 
         private sealed class StaticService<TService> : ServiceCreator
         {
@@ -70,7 +59,7 @@ namespace Magic.Net
         {
             private readonly Func<TService> _func;
 
-            public ServiceFuncCreator(Func<TService> func ) 
+            public ServiceFuncCreator(Func<TService> func)
                 : base(typeof(TService))
             {
                 _func = func;
@@ -90,7 +79,7 @@ namespace Magic.Net
         {
             private readonly Type _serviceType;
 
-            public ServiceCreator(Type serviceType)
+            protected ServiceCreator(Type serviceType)
             {
                 _serviceType = serviceType;
             }
@@ -102,32 +91,17 @@ namespace Magic.Net
             public override bool Equals(object other)
             {
                 // If parameter is null return false.
+                // ReSharper disable once UseNullPropagation
                 if (other == null)
-                {
                     return false;
-                }
 
                 // If parameter cannot be cast to Point return false.
                 ServiceCreator p = other as ServiceCreator;
-                if ((System.Object)p == null)
-                {
+                if (p == null)
                     return false;
-                }
 
                 // Return true if the fields match:
-                return (_serviceType == p._serviceType);
-            }
-
-            public bool Equals(ServiceCreator other)
-            {
-                // If parameter is null return false:
-                if ((object)other == null)
-                {
-                    return false;
-                }
-
-                // Return true if the fields match:
-                return (_serviceType == other._serviceType);
+                return _serviceType == p._serviceType;
             }
 
             public override int GetHashCode()

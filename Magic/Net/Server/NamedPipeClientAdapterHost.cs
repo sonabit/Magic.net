@@ -1,6 +1,5 @@
 using System;
 using System.IO.Pipes;
-using System.ServiceModel.Channels;
 using System.Text;
 using JetBrains.Annotations;
 
@@ -9,20 +8,18 @@ namespace Magic.Net.Server
     internal sealed class NamedPipeClientAdapterHost : NamedPipeAdapter
     {
         [NotNull] private readonly NamedPipeServerStream _stream;
-        private readonly Uri _localAddress;
 
-        internal NamedPipeClientAdapterHost([NotNull] NamedPipeServerStream stream, Uri localAddress, [NotNull] ISystem system)
+        internal NamedPipeClientAdapterHost([NotNull] NamedPipeServerStream stream, [NotNull] ISystem system)
             : base(stream, system)
         {
             _stream = stream;
-            _localAddress = localAddress;
         }
-        
+
         internal void Initialize()
         {
             NetPackage data = ReadData();
             NetDataPackage dataPackage = data as NetDataPackage;
-            if (dataPackage == null || dataPackage.PackageContentType != DataPackageContentType.ConnectionMetaData)
+            if ((dataPackage == null) || (dataPackage.PackageContentType != DataPackageContentType.ConnectionMetaData))
             {
                 Dispose();
                 throw new NetException(NetExceptionReasonses.PackeContentTypeRejected,
@@ -31,7 +28,8 @@ namespace Magic.Net.Server
 
             if (dataPackage.PackageContentType == DataPackageContentType.ConnectionMetaData)
             {
-                var uriString = Encoding.UTF8.GetString(dataPackage.Buffer.Array, dataPackage.Buffer.Offset, dataPackage.Buffer.Count);
+                var uriString = Encoding.UTF8.GetString(dataPackage.Buffer.Array, dataPackage.Buffer.Offset,
+                    dataPackage.Buffer.Count);
                 RemoteAddress = new Uri(uriString, UriKind.Relative);
             }
         }

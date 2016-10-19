@@ -3,7 +3,7 @@ using System;
 namespace Magic.Net
 {
     [Flags]
-    public enum NetExceptionReasonses : int
+    public enum NetExceptionReasonses
     {
         UnknownPackageContentType,
         PackeContentTypeRejected,
