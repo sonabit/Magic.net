@@ -197,8 +197,10 @@ namespace Magic.Net
             {
                 _processSendingWaiter.WaitOne();
 
-                if (!IsConnected) break;
-                if (_isDisposed) break;
+                if (!IsConnected || _isDisposed)
+                {
+                    break;
+                }
 
                 while (!_isDisposed && IsConnected && !_sendingQueue.IsEmpty)
                     if (_sendingQueue.TryPeek(out buffers))
@@ -206,7 +208,8 @@ namespace Magic.Net
                         if (buffers.Any(b => b.Count > 0))
                             try
                             {
-                                if (!IsConnected) break;
+                                if (!IsConnected)
+                                    break;
                                 _connectionAdapter.WriteData(buffers);
                             }
                             catch (Exception exception)
@@ -226,7 +229,8 @@ namespace Magic.Net
 
                         buffers = null;
 
-                        if (_isDisposed) break;
+                        if (_isDisposed)
+                            break;
                     }
             }
             _isSending = false;

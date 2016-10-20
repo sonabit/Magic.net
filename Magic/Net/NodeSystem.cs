@@ -79,6 +79,12 @@ namespace Magic.Net
             _packageHandler = dataPackageHandler;
         }
 
+        [Pure]
+        public IEnumerable<Uri> LocalAddresses()
+        {
+            return _connections.Where(c => c.IsConnected).Select(c => c.LocalAddress);
+        }
+
         #endregion
         
         #region public
