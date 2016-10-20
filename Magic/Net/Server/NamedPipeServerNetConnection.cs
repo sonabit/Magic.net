@@ -101,6 +101,9 @@ namespace Magic.Net.Server
 
         private void OpenInternal(bool withOwnThread)
         {
+            if (!_nodeSystem.IsRunning)
+                return;
+
             CloseInternal();
             _closeEvent.Reset();
             if (withOwnThread)

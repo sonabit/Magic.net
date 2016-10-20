@@ -14,6 +14,30 @@ namespace Magic.Net
 {
     public abstract class NetConnection : INetConnection
     {
+        #region Fields
+
+        private INetConnectionAdapter _connectionAdapter;
+        private ISystem _system;
+        private BufferManager _bufferManager;
+        private static int[] _bufferFilter;
+        private IDataPackageDispatcher _dataPackageDispatcher;
+        private readonly ConcurrentQueue<NetPackage> _receivedDataQueue = new ConcurrentQueue<NetPackage>();
+
+        private readonly ConcurrentQueue<ArraySegment<byte>[]> _sendingQueue =
+            new ConcurrentQueue<ArraySegment<byte>[]>();
+
+        private readonly AutoResetEvent _receivedDataResetEvent = new AutoResetEvent(false);
+        private readonly AutoResetEvent _processSendingWaiter = new AutoResetEvent(false);
+        private readonly bool _isDisposed = false;
+        private bool _isInitialized;
+        private bool _isReading;
+        private bool _isSending;
+
+        // ReSharper disable once InconsistentNaming
+        private event Action<INetConnection> _disconnected;
+
+        #endregion Fields
+
         #region Ctros
 
         protected NetConnection()
@@ -236,30 +260,6 @@ namespace Magic.Net
             var handler = _disconnected;
             if (handler != null) handler(this);
         }
-
-        #region Fields
-
-        private INetConnectionAdapter _connectionAdapter;
-        private ISystem _system;
-        private BufferManager _bufferManager;
-        private static int[] _bufferFilter;
-        private IDataPackageDispatcher _dataPackageDispatcher;
-        private readonly ConcurrentQueue<NetPackage> _receivedDataQueue = new ConcurrentQueue<NetPackage>();
-
-        private readonly ConcurrentQueue<ArraySegment<byte>[]> _sendingQueue =
-            new ConcurrentQueue<ArraySegment<byte>[]>();
-
-        private readonly AutoResetEvent _receivedDataResetEvent = new AutoResetEvent(false);
-        private readonly AutoResetEvent _processSendingWaiter = new AutoResetEvent(false);
-        private readonly bool _isDisposed = false;
-        private bool _isInitialized;
-        private bool _isReading;
-        private bool _isSending;
-
-        // ReSharper disable once InconsistentNaming
-        private event Action<INetConnection> _disconnected;
-
-        #endregion Fields
 
         #region INetConnection
 

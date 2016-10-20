@@ -17,6 +17,8 @@ namespace Magic.Net
         [NotNull]
         ISerializeFormatterCollection FormatterCollection { get; }
 
+        bool IsRunning { get; }
+
         void AddConnection([NotNull] INetConnection connection);
     }
 }

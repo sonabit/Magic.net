@@ -1,6 +1,6 @@
 ﻿namespace Magic.Net.Server
 {
-    internal class NetConnectionStreamHost : NetConnection
+    internal sealed class NetConnectionStreamHost : NetConnection
     {
         private readonly INetConnectionAdapter _adapter;
 

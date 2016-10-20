@@ -13,6 +13,23 @@ namespace Magic.Net
 {
     public sealed class NodeSystem : ISystem, _ISender
     {
+        #region Fields
+
+        private readonly BufferManager _bufferManager = BufferManager.CreateBufferManager(300*1024*1024, 2*1024*1024);
+
+        [NotNull] [ItemNotNull] private readonly List<INetConnection> _connections = new List<INetConnection>();
+
+        private readonly ISerializeFormatterCollection _formatterCollection;
+
+        private readonly IDataPackageHandler _packageHandler;
+        private bool _isRunning;
+        private readonly string _systemName;
+        private readonly ObjectStreamManager _objectStreamManager;
+
+        #endregion Fields
+
+        #region Ctro
+
         public NodeSystem()
             : this(Environment.MachineName, new ServiceCollection(), new DefaulSerializeFormatter())
         {
@@ -40,7 +57,7 @@ namespace Magic.Net
             _objectStreamManager = new ObjectStreamManager(formatterCollection);
             _formatterCollection = formatterCollection;
             _systemName = systemName;
-            InternalServiceCollection serviceCollectionProvider = new InternalServiceCollection(serviceProvider);
+            var serviceCollectionProvider = new InternalServiceCollection(serviceProvider);
             _packageHandler = new DataPackageHandler(this, serviceCollectionProvider, formatterCollection);
             serviceCollectionProvider[typeof(IObjectStreamService)] = typeof(ObjectStreamRemoteService);
         }
@@ -62,20 +79,18 @@ namespace Magic.Net
             _packageHandler = dataPackageHandler;
         }
 
+        #endregion
+        
+        #region public
+
         public void Start()
         {
             lock (_connections)
             {
                 _isRunning = true;
-                foreach (INetConnection netConnection in _connections)
+                foreach (var netConnection in _connections)
                     OpenConnection(netConnection);
             }
-        }
-
-        private static void OpenConnection(INetConnection netConnection)
-        {
-            if (!netConnection.IsConnected)
-                netConnection.Open();
         }
 
         public void Stop()
@@ -83,15 +98,16 @@ namespace Magic.Net
             lock (_connections)
             {
                 _isRunning = false;
-                foreach (INetConnection netConnection in _connections.ToArray())
+                foreach (var netConnection in _connections.ToArray())
                 {
                     netConnection.Close();
-                    IDisposable disposable = netConnection as IDisposable;
+                    var disposable = netConnection as IDisposable;
                     if (disposable != null)
                         disposable.Dispose();
                 }
             }
         }
+
 
         [PublicAPI]
         public async Task<TResult> ExcAsync<TResult>(Uri remoteAddress, Expression<Func<TResult>> expression,
@@ -106,14 +122,25 @@ namespace Magic.Net
         public TResult Execute<TResult>(Uri remoteAddress, Expression<Func<TResult>> expression,
             int imeoutMilliseconds = Timeout.Infinite)
         {
-            INetConnection connection = FindConnection(remoteAddress);
+            var connection = FindConnection(remoteAddress);
 
             if (connection == null)
                 throw new Exception();
 
-            INetCommand command = expression.ToNetCommand();
+            var command = expression.ToNetCommand();
             return Execute<TResult>(connection, command, imeoutMilliseconds);
         }
+
+        #endregion
+
+        #region private
+
+        private static void OpenConnection(INetConnection netConnection)
+        {
+            if (!netConnection.IsConnected)
+                netConnection.Open();
+        }
+
 
         private INetConnection FindConnection(Uri remoteAddress)
         {
@@ -137,29 +164,29 @@ namespace Magic.Net
 
         private TResult Execute<TResult>(INetConnection connection, INetCommand command, int imeoutMilliseconds)
         {
-            NetDataPackageHeader header =
+            var header =
                 NetDataPackageHeader.CreateNetDataPackageHeader(DataPackageContentType.NetCommand,
                     DataSerializeFormat.MsBinary);
             // ReSharper disable once SuspiciousTypeConversion.Global
-            IMagicSerialization magicSerialization = command as IMagicSerialization;
+            var magicSerialization = command as IMagicSerialization;
             if (magicSerialization != null)
                 header = NetDataPackageHeader.CreateNetDataPackageHeader(DataPackageContentType.NetCommand,
                     DataSerializeFormat.Magic);
 
-            ISerializeFormatter s = _formatterCollection.GetFormatter(header.SerializeFormat);
-            var buffer = s.Serialize(command);
-            NetDataPackage package = new NetDataPackage(header, buffer, 0, buffer.Length);
+            var s = _formatterCollection.GetFormatter(header.SerializeFormat);
+            byte[] buffer = s.Serialize(command);
+            var package = new NetDataPackage(header, buffer, 0, buffer.Length);
 
             connection.Send(package.DataSegments().ToArray());
 
             if (typeof(TResult) != typeof(void))
             {
-                DataPackageHandler.CommandResultAwait commandResult =
+                var commandResult =
                     new DataPackageHandler.CommandResultAwait(command.Id, _packageHandler);
                 if (!commandResult.WaitHandle.WaitOne(imeoutMilliseconds))
                     throw new TimeoutException();
 
-                Exception remoteException = commandResult.Result as Exception;
+                var remoteException = commandResult.Result as Exception;
                 if (remoteException != null)
                     throw new Exception("RemoteException: " + remoteException.Message, remoteException);
 
@@ -192,7 +219,7 @@ namespace Magic.Net
 
             private static object GetInstance(object service)
             {
-                Type serviceType = service as Type;
+                var serviceType = service as Type;
                 if (serviceType != null)
                     return Activator.CreateInstance(serviceType);
                 return service;
@@ -217,20 +244,7 @@ namespace Magic.Net
             #endregion
         }
 
-        #region Fields
-
-        private readonly BufferManager _bufferManager = BufferManager.CreateBufferManager(300*1024*1024, 2*1024*1024);
-
-        [NotNull] [ItemNotNull] private readonly List<INetConnection> _connections = new List<INetConnection>();
-
-        private readonly ISerializeFormatterCollection _formatterCollection;
-
-        private readonly IDataPackageHandler _packageHandler;
-        private bool _isRunning;
-        private readonly string _systemName;
-        private readonly ObjectStreamManager _objectStreamManager;
-
-        #endregion Fields
+        #endregion
 
         #region Implementation of ISystem
 
@@ -238,6 +252,8 @@ namespace Magic.Net
         {
             get { return _formatterCollection; }
         }
+
+        public bool IsRunning { get { return _isRunning; } }
 
         void ISystem.AddConnection([NotNull] INetConnection connection)
         {
@@ -271,7 +287,7 @@ namespace Magic.Net
 
         public IEnumerator<T> CreateObjectStream<T>(Uri remoteAddress, TimeSpan timeout)
         {
-            var remoteObjectStream = Execute(remoteAddress,
+            RemoteObjectStream<T> remoteObjectStream = Execute(remoteAddress,
                 () => Proxy<IObjectStreamService>.Target.Create<T>(), Convert.ToInt32(timeout.TotalMilliseconds));
             _objectStreamManager.Add(remoteObjectStream);
 

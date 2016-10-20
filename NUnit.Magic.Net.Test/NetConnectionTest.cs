@@ -5,6 +5,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using FakeItEasy;
 using Magic.Net;
 using Magic.Net.Data;
+using Magic.Net.Server;
 using Magic.Serialization;
 using NUnit.Framework;
 using NUnit.Magic.Net.Test.Helper;
@@ -22,7 +23,7 @@ namespace NUnit.Magic.Net.Test
             IDataPackageHandler dataPackageHandler = A.Fake<IDataPackageHandler>();
             INetConnectionAdapter adapter = A.Fake<INetConnectionAdapter>();
             ISystem fakeSystem = new NodeSystem("UnitTestSystem", formatterCollection, dataPackageHandler);
-           
+
             TestNetConnection connection = new TestNetConnection(adapter);
             connection.LinkTo(fakeSystem);
             A.CallTo(() => adapter.IsConnected).Returns(true);
@@ -32,14 +33,14 @@ namespace NUnit.Magic.Net.Test
             using (var stream = new MemoryStream())
             using (var bw = new BinaryWriter(stream))
             {
-                bw.Write((byte)1);
-                bw.Write((byte)1);
-                bw.Write((byte)DataSerializeFormat.MsBinary);
+                bw.Write((byte) 1);
+                bw.Write((byte) 1);
+                bw.Write((byte) DataSerializeFormat.MsBinary);
 
                 bformatter.Serialize(stream, new NetCommand(this.GetType(), null, new ParameterInfo[0], new object[0]));
                 buffer = stream.ToArray();
             }
-            
+
             var package = new NetDataPackage(buffer);
             connection.AddAddToReceivedDataQueue(package);
 
@@ -47,7 +48,8 @@ namespace NUnit.Magic.Net.Test
             connection.CallDequeueReceivedData();
 
             // Then
-            A.CallTo(() => dataPackageHandler.ReceiveCommand(A<RequestState>.Ignored)).MustHaveHappened(Repeated.Exactly.Once);
+            A.CallTo(() => dataPackageHandler.ReceiveCommand(A<RequestState>.Ignored))
+                .MustHaveHappened(Repeated.Exactly.Once);
         }
 
         [Test, Category("data package version")]
@@ -60,13 +62,27 @@ namespace NUnit.Magic.Net.Test
 
             var connection = A.Fake<TestNetConnection>(o => o.CallsBaseMethods());
             connection.LinkTo(fakeSystem);
-            var buffer = new NetDataPackage(new byte[] { 20, 1, 0, 0, 0 });
+            var buffer = new NetDataPackage(new byte[] {20, 1, 0, 0, 0});
 
             // When
             connection.AddAddToReceivedDataQueue(buffer);
 
             // Then
             Assert.Throws<NotSupportedException>(connection.CallDequeueReceivedData);
+        }
+
+        [Test, Category("Connection")]
+        public void NetConnectionStreamHostCreate()
+        {
+            // Given
+            INetConnectionAdapter apAdapter = A.Fake<INetConnectionAdapter>();
+            ISystem system = A.Fake<ISystem>();
+            
+            // When
+            NetConnectionStreamHost connection = new NetConnectionStreamHost(apAdapter);
+            
+            // Then
+            Assert.DoesNotThrow(() => connection.LinkTo(system));
         }
     }
 }

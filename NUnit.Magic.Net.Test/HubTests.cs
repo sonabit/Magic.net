@@ -81,7 +81,7 @@ namespace NUnit.Magic.Net.Test
 
             // When
             var test = _hub.CreateObjectStream<object>(new Uri("magic://remotemachine/testhub"),
-                TimeSpan.FromSeconds(10));
+                TimeSpan.FromSeconds(20));
 
             var testResult = new object[10];
             using (test)
