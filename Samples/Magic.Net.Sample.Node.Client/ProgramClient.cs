@@ -13,7 +13,7 @@ namespace Magic.Net.Sample.Node.Client
 
         static ProgramClient()
         {
-            RemotePipeChannelUri = new Uri("magic://fake-pc/TestSystem");
+            RemotePipeChannelUri = new Uri("magic://localhost/TestSystem");
         }
 
         private static void Main(string[] args)

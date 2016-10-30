@@ -193,12 +193,13 @@ namespace Magic.Net
 
             ArraySegment<byte>[] buffers = null;
 
-            while (IsConnected)
+            while (_connectionAdapter.IsConnected)
             {
                 _processSendingWaiter.WaitOne();
 
-                if (!IsConnected || _isDisposed)
+                if (!_connectionAdapter.IsConnected || _isDisposed)
                 {
+                    Debug.WriteLine("BREAK " + typeof(NetConnection).Name + ".SendingInternal !IsConnected || _isDisposed");
                     break;
                 }
 
@@ -208,13 +209,16 @@ namespace Magic.Net
                         if (buffers.Any(b => b.Count > 0))
                             try
                             {
-                                if (!IsConnected)
+                                if (!_connectionAdapter.IsConnected)
+                                {
+                                    Debug.WriteLine("BREAK " + typeof(NetConnection).Name + ".SendingInternal !_connectionAdapter.IsConnected");
                                     break;
+                                }
                                 _connectionAdapter.WriteData(buffers);
                             }
                             catch (Exception exception)
                             {
-                                Trace.TraceError(exception.ToString());
+                                Trace.TraceError(typeof(NetConnection).Name + ".SendingInternal " + exception.ToString());
                                 break;
                             }
 
@@ -230,7 +234,10 @@ namespace Magic.Net
                         buffers = null;
 
                         if (_isDisposed)
+                        {
+                            Debug.WriteLine("BREAK " + typeof(NetConnection).Name + ".SendingInternal _isDisposed");
                             break;
+                        }
                     }
             }
             _isSending = false;

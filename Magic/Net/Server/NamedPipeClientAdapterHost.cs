@@ -30,7 +30,7 @@ namespace Magic.Net.Server
             {
                 var uriString = Encoding.UTF8.GetString(dataPackage.Buffer.Array, dataPackage.Buffer.Offset,
                     dataPackage.Buffer.Count);
-                RemoteAddress = new Uri(uriString, UriKind.Relative);
+                RemoteAddress = new Uri(uriString);
             }
         }
 

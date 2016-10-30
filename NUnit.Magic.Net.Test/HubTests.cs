@@ -26,8 +26,8 @@ namespace NUnit.Magic.Net.Test
             _serverSystem.Start();
 
             _clientSystem = new NodeSystem("ClientSystem");
-            NamedPipeNetConnection pipeClient = new NamedPipeNetConnection(_remoteUri); 
-            pipeClient.LinkTo(_clientSystem);
+            _pipeClient = new NamedPipeNetConnection(_remoteUri); 
+            _pipeClient.LinkTo(_clientSystem);
             _clientSystem.Start();
         }
 
@@ -43,6 +43,7 @@ namespace NUnit.Magic.Net.Test
         private readonly CancellationTokenSource _tokenSource = new CancellationTokenSource();
         private NodeSystem _serverSystem;
         private Uri _remoteUri;
+        private NamedPipeNetConnection _pipeClient;
 
         [Test]
         public void HubTests_EnvironmentCheck()
@@ -50,13 +51,14 @@ namespace NUnit.Magic.Net.Test
             Uri[] serverAddresses = _serverSystem.LocalAddresses().ToArray();
             Assert.AreEqual(1, serverAddresses.Length);
             Assert.AreEqual(_remoteUri.ToString().ToLower(), serverAddresses[0].ToString().ToLower());
+
+            Assert.AreEqual(true, _pipeClient.IsConnected);
         }
 
 
-        [Test]
+        [Test, Ignore("not stable")]
         public void ReceiveFromOjectStreamTest()
         {
-            Assert.Inconclusive("not stable");
             //Given 
             var streamId = Guid.NewGuid();
             var adapter = new TestStreamAdapter(
@@ -123,10 +125,9 @@ namespace NUnit.Magic.Net.Test
             Assert.AreEqual(2, testResult.Length);
         }
 
-        [Test]
+        [Test, Ignore("not stable")]
         public void ReceiveFromOjectStreamTest2()
         {
-            Assert.Inconclusive("not stable");
             // Given // When
             IEnumerator<object> objects = _clientSystem.CreateObjectStream<object>(_remoteUri);
 
