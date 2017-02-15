@@ -10,9 +10,9 @@
         xmlns:models="clr-namespace:FolderSize.Models"
         xmlns:magic="http://schemas.rolbeh.de/magic/2015"
         xmlns:folderSize="clr-namespace:FolderSize"
-        xmlns:magicdata="clr-namespace:Magic;assembly=Magic"
+        xmlns:magicdata="clr-namespace:Magic;assembly=Magic.net"
         mc:Ignorable="d" d:DataContext="{d:DesignInstance Type=viewModels:MainViewModel}"
-        Title="Sample Folder HeadMap" Height="350" Width="525">
+        Title="Sample Folder TreeMap" Height="350" Width="525">
     <FrameworkElement.Resources>
 
         <CollectionViewSource x:Key="cvs"
@@ -120,22 +120,7 @@
                                     MaxDepth="1"
                                     MinArea="64"
                                     TreeMapMode="Squarified" />
-                    <magic:TreeMaps Grid.Row="1"
-                                    x:Name="_tree"
-                                    ItemTemplate="{StaticResource GeographicAreaDataTemplate}"
-                                    ValuePropertyName="Value.TotalFileSize"
-                                    TreeMapMode="Squarified">
-                        <folderSize:GeographicArea>
-                            <folderSize:GeographicArea.Value>
-                                <folderSize:MyClass TotalFileSize="28" />
-                            </folderSize:GeographicArea.Value>
-                        </folderSize:GeographicArea>
-                        <folderSize:GeographicArea>
-                            <folderSize:GeographicArea.Value>
-                                <folderSize:MyClass TotalFileSize="58" />
-                            </folderSize:GeographicArea.Value>
-                        </folderSize:GeographicArea>
-                    </magic:TreeMaps>
+                    
 
                 </Grid>
                 <!--<ItemsControl x:Name="ItemsControl" ItemsSource="{Binding Path=Dirs}" Background="BlanchedAlmond"
