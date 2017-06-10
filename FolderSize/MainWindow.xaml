@@ -1,0 +1,141 @@
+﻿<Window x:Class="FolderSize.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModels="clr-namespace:FolderSize.ViewModels"
+        xmlns:converter="clr-namespace:Magic.Controls.Converter;assembly=Magic.Controls"
+        xmlns:system="clr-namespace:System;assembly=mscorlib"
+        xmlns:componentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+        xmlns:models="clr-namespace:FolderSize.Models"
+        xmlns:magic="http://schemas.rolbeh.de/magic/2015"
+        xmlns:folderSize="clr-namespace:FolderSize"
+        xmlns:magicdata="clr-namespace:Magic;assembly=Magic.net"
+        mc:Ignorable="d" d:DataContext="{d:DesignInstance Type=viewModels:MainViewModel}"
+        Title="Sample Folder TreeMap" Height="350" Width="525">
+    <FrameworkElement.Resources>
+
+        <CollectionViewSource x:Key="cvs"
+                              Source="{Binding Path=DirTree.RootItem}"
+                              IsLiveSortingRequested="True">
+            <CollectionViewSource.LiveSortingProperties>
+                <system:String>TotalCount</system:String>
+            </CollectionViewSource.LiveSortingProperties>
+            <CollectionViewSource.SortDescriptions>
+                <componentModel:SortDescription PropertyName="TotalCount" Direction="Descending" />
+            </CollectionViewSource.SortDescriptions>
+
+        </CollectionViewSource>
+
+        <converter:ReadableFilesizeConverter x:Key="ReadableFilesizeConverter" />
+
+        <folderSize:ToListCollectionViewConverter x:Key="CollectionConverter" />
+
+        <HierarchicalDataTemplate x:Key="FileEntryItemDataTemplate"
+                                  ItemsSource="{Binding Path=., Converter={StaticResource CollectionConverter}}"
+                                  DataType="{x:Type magicdata:NestedSetItem}">
+
+            <TextBlock DataContext="{Binding Path=Value}" d:DataContext="{d:DesignInstance Type=models:FileEntryItem}">
+                <Run Text="{Binding Path=DisplayText, Mode=OneWay}" />
+                <Run
+                    Text="{Binding Path=TotalFileSize, Mode=OneWay, Converter={StaticResource ReadableFilesizeConverter}}" />
+            </TextBlock>
+        </HierarchicalDataTemplate>
+
+        <DataTemplate x:Key="DiskItemDataTemplate"
+                      DataType="{x:Type magicdata:NestedSetItem}">
+            <Border BorderThickness="2" BorderBrush="Blue">
+                <Grid>
+                    <Viewbox Stretch="Fill">
+                        <Grid>
+                            <TextBlock Text="{Binding Path=.}" />
+                        </Grid>
+                    </Viewbox>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate x:Key="GeographicAreaDataTemplate">
+            <Border BorderThickness="2" BorderBrush="Blue">
+                <Grid>
+                    <Viewbox Stretch="Fill">
+                        <Grid>
+                            <!--<Image Source="{Binding Path=Image}" Width="128" Height="128" Stretch="Fill"/>-->
+                            <StackPanel Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <!--<TextBlock  TextWrapping="Wrap" Text="{Binding Path=Name}"/>-->
+                                <TextBlock Text="{Binding Path=Value.TotalFileSize, StringFormat={}{0}bytes}" />
+                            </StackPanel>
+                        </Grid>
+                    </Viewbox>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+    </FrameworkElement.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="46" />
+            <RowDefinition Height="1*" />
+        </Grid.RowDefinitions>
+
+        <Button Command="{Binding RefreshCommand}" Width="93" Content="Refresh" Margin="5,5,0,0"
+                HorizontalAlignment="Left" Height="36" VerticalAlignment="Top" />
+
+        <TextBlock Grid.Row="0" Margin="124,5,05,05" HorizontalAlignment="Left" Width="197">
+            <Run Text="{Binding Path=DirTree.Lenght, Mode=OneWay}" /> <Run>Verzeichnisse gescannt</Run>
+            <LineBreak />
+            <Run Text="{Binding Path=TotalLength, Converter={StaticResource ReadableFilesizeConverter}, Mode=OneWay}" />
+            <Run>Größe</Run>
+            <Run Text="{Binding Path=DirTree.RootItem.Value.TotalFileCount, Mode=OneWay}" />
+        </TextBlock>
+
+        <CheckBox Grid.Row="0" IsChecked="{Binding Path=IsLiveSorting}" IsThreeState="True" Margin="285,19,72,10"
+                  Content="Livesorting" />
+        <Button Margin="0,10,10,0" HorizontalAlignment="Right" Width="98" Height="25" VerticalAlignment="Top"
+                Click="ButtonBase_OnClick">
+            test
+        </Button>
+        <Border Grid.Row="1" BorderBrush="Black" BorderThickness="1" Margin="10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="47*" />
+                    <ColumnDefinition Width="52*" />
+                </Grid.ColumnDefinitions>
+
+                <TreeView x:Name="TreeView" ItemsSource="{Binding Path=DirTree.RootItem}"
+                          Margin="10,10,0,10"
+                          ItemTemplate="{StaticResource FileEntryItemDataTemplate}"
+                          VirtualizingStackPanel.IsVirtualizing="True"
+                          VirtualizingStackPanel.VirtualizationMode="Recycling" />
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <magic:TreeMaps Grid.Row="0" Margin="10"
+                                    ItemsSource="{Binding Path=DirTree.RootItem}"
+                                    ValuePropertyName="Value.TotalFileSize"
+                                    ItemTemplate="{StaticResource GeographicAreaDataTemplate}"
+                                    MaxDepth="1"
+                                    MinArea="64"
+                                    TreeMapMode="Squarified" />
+                    
+
+                </Grid>
+                <!--<ItemsControl x:Name="ItemsControl" ItemsSource="{Binding Path=Dirs}" Background="BlanchedAlmond"
+                      Margin="10"  >
+            <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type models:FileEntryItem}" >
+                    <TextBlock Background="DarkSeaGreen">
+                        <Run Text="{Binding Path=DisplayText, Mode=OneWay}" />
+                        <Run Text="{Binding Path=TotalLength, Converter={StaticResource ReadableFilesizeConverter}, Mode=OneWay}" />
+                    </TextBlock>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>-->
+
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

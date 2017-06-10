@@ -34,7 +34,14 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\magic.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
+    <Reference Include="PresentationFramework" />
     <Reference Include="System" />
   </ItemGroup>
   <Choose>
@@ -52,12 +59,22 @@
   <ItemGroup>
     <Compile Include="MagLinqExtensionTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReadableFilesizeConverterTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Magic.Controls\Magic.Controls.csproj">
       <Project>{ba84b818-eaaa-45f5-bd1f-eb13d5b7a29c}</Project>
       <Name>Magic.Controls</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Magic\Magic.csproj">
+      <Project>{d835b407-6ed1-402d-b34d-8f46a81a5ddd}</Project>
+      <Name>Magic</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\magic.snk">
+      <Link>magic.snk</Link>
+    </None>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

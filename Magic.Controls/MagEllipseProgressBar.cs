@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 
-namespace magic.Controls
+namespace Magic.Controls
 {
     
     public class MagEllipseProgressBar : ProgressBar

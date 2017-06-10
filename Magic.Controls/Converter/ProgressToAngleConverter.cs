@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace magic.Controls.Converter
+namespace Magic.Controls.Converter
 {
     class ProgressToAngleConverter : System.Windows.Data.IMultiValueConverter
     {

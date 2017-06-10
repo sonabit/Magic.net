@@ -30,12 +30,13 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\Magic.Controls.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>magic.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>..\magic.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Expression.Interactions, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
@@ -55,15 +56,17 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Converter\ReadableFilesizeConverter.cs" />
+    <Compile Include="HeatMapView.cs" />
+    <Compile Include="HeatMapViewItem.cs" />
     <Compile Include="ObjectNotify.cs" />
     <Compile Include="MagCheckBox.cs" />
     <Compile Include="Properties\Annotations.cs" />
-    <Compile Include="System\IO\MagIOExtension.cs" />
-    <Compile Include="System\MagLinqExtension.cs" />
-    <Compile Include="System\MagSystemExtension.cs" />
-    <Compile Include="System\Security\MagCryptographyExtension.cs" />
-    <Compile Include="System\Threading\Tasks\TaskHelper.cs" />
-    <Compile Include="System\Threading\Tasks\UiTask.cs" />
+    <Compile Include="TreeMaps\SquarifiedTreeMapsPanel.cs" />
+    <Compile Include="TreeMaps\TreeMapItem.cs" />
+    <Compile Include="TreeMaps\TreeMaps.cs" />
+    <Compile Include="TreeMaps\TreeMapsPanel.cs" />
+    <Compile Include="TreeMaps\ValueDataTemplate.cs" />
     <Page Include="Themes\Generic.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -91,12 +94,20 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="magic.snk" />
+    <None Include="..\magic.snk">
+      <Link>magic.snk</Link>
+    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <AppDesigner Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Magic\Magic.csproj">
+      <Project>{d835b407-6ed1-402d-b34d-8f46a81a5ddd}</Project>
+      <Name>Magic</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
