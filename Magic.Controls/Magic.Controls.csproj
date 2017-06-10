@@ -39,6 +39,10 @@
     <AssemblyOriginatorKeyFile>..\magic.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="JetBrains.Annotations, Version=10.4.0.0, Culture=neutral, PublicKeyToken=1010a0d8d6380325, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\JetBrains.Annotations.10.4.0\lib\net\JetBrains.Annotations.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.Expression.Interactions, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="PresentationFramework.Classic" />
     <Reference Include="System" />
@@ -61,7 +65,6 @@
     <Compile Include="HeatMapViewItem.cs" />
     <Compile Include="ObjectNotify.cs" />
     <Compile Include="MagCheckBox.cs" />
-    <Compile Include="Properties\Annotations.cs" />
     <Compile Include="TreeMaps\SquarifiedTreeMapsPanel.cs" />
     <Compile Include="TreeMaps\TreeMapItem.cs" />
     <Compile Include="TreeMaps\TreeMaps.cs" />
@@ -97,6 +100,7 @@
     <None Include="..\magic.snk">
       <Link>magic.snk</Link>
     </None>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

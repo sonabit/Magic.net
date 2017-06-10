@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using Magic.Annotations;
+using JetBrains.Annotations;
 
 // ReSharper disable CheckNamespace
 namespace System
