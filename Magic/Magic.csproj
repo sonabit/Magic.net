@@ -121,6 +121,7 @@
     <None Include="..\magic.snk">
       <Link>Properties\magic.snk</Link>
     </None>
+    <None Include="Magic.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

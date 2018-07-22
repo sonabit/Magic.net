@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Magic</id>
+    <version>$version$</version>
+    <title>Magic</title>
+    <authors>Magic-net</authors>
+    <owners>Magic-net</owners>
+    <licenseUrl>https://github.com/sonabit/Magic.net/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/sonabit/Magic.net</projectUrl>
+    <iconUrl>https://secure.gravatar.com/avatar/fa386b8c80919d3bdc684552d2d846ab?s=256&amp;r=g&amp;d=retro</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>>Magic tools and extension for .net</description>
+    <releaseNotes></releaseNotes>
+    <copyright>Copyright 2018</copyright>
+    <tags>magic tools</tags>
+  </metadata>
+</package>
