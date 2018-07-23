@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Magic.Controls</id>
+    <version>1.0.0-alpha</version>
+    <title>Magic.Controls</title>
+    <authors>magic-net</authors>
+    <owners>magic-net</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <licenseUrl>https://github.com/sonabit/Magic.net/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/sonabit/Magic.net</projectUrl>
+    <iconUrl>https://secure.gravatar.com/avatar/fa386b8c80919d3bdc684552d2d846ab?s=256&amp;r=g&amp;d=retro</iconUrl>
+    <description>Magic controls and extension for .net and WPF</description>
+    <releaseNotes></releaseNotes>
+    <copyright>Copyright 2018</copyright>
+    <tags>magic tools controls</tags>
+    <dependencies>
+      <dependency id="Magic" version="1.0" />
+    </dependencies>
+  </metadata>
+</package>

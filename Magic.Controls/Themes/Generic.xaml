@@ -4,8 +4,9 @@
     xmlns:local="clr-namespace:Magic.Controls"
     xmlns:converter="clr-namespace:Magic.Controls.Converter"
     xmlns:themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Classic"
-    xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions">
-
+    
+    >
+    <!--xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"-->
 
     <converter:ProgressToAngleConverter x:Key="ProgressConverter" />
 
@@ -148,9 +149,9 @@
                                 </Grid>
                             </Border>
                         </BulletDecorator.Bullet>
-                        <VisualStateManager.CustomVisualStateManager>
+                        <!--<VisualStateManager.CustomVisualStateManager>
                             <ei:ExtendedVisualStateManager />
-                        </VisualStateManager.CustomVisualStateManager>
+                        </VisualStateManager.CustomVisualStateManager>-->
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup x:Name="CheckStates" />
                         </VisualStateManager.VisualStateGroups>
